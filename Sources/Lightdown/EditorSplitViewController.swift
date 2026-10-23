@@ -20,6 +20,15 @@ final class EditorTextView: NSTextView {
     override func insertNewline(_ sender: Any?) {
         if !continueTodoList() { super.insertNewline(sender) }
     }
+
+    // ⇧⌘↑/↓ move list items; elsewhere they keep selecting to the start/end of the document.
+    @IBAction func moveItemUp(_ sender: Any?) {
+        if !moveListItem(up: true) { moveToBeginningOfDocumentAndModifySelection(sender) }
+    }
+
+    @IBAction func moveItemDown(_ sender: Any?) {
+        if !moveListItem(up: false) { moveToEndOfDocumentAndModifySelection(sender) }
+    }
 }
 
 final class PreviewWebView: WKWebView {

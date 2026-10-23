@@ -37,6 +37,10 @@ enum MainMenu {
         return item
     }
 
+    private static func arrow(_ key: Int) -> String {
+        String(Character(UnicodeScalar(UInt16(key))!))
+    }
+
     private static func appMenu() -> NSMenu {
         let name = ProcessInfo.processInfo.processName
         let menu = NSMenu(title: name)
@@ -93,6 +97,8 @@ enum MainMenu {
         menu.addItem(item("Select All", #selector(NSText.selectAll(_:)), "a"))
         menu.addItem(.separator())
         menu.addItem(item("Toggle To-Do", #selector(EditorTextView.toggleTodo(_:)), "l"))
+        menu.addItem(item("Move Item Up", #selector(EditorTextView.moveItemUp(_:)), arrow(NSUpArrowFunctionKey), [.command, .shift]))
+        menu.addItem(item("Move Item Down", #selector(EditorTextView.moveItemDown(_:)), arrow(NSDownArrowFunctionKey), [.command, .shift]))
         menu.addItem(.separator())
 
         let find = NSMenu(title: "Find")
