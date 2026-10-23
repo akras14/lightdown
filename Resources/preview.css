@@ -1,0 +1,42 @@
+:root {
+  --fg: #1f2328; --muted: #59636e; --bg: #ffffff; --border: #d1d9e0;
+  --code-bg: #f6f8fa; --link: #0969da; --quote: #59636e; --mark: #fff8c5;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #e6edf3; --muted: #9198a1; --bg: #0d1117; --border: #3d444d;
+    --code-bg: #151b23; --link: #4493f8; --quote: #9198a1; --mark: #bb800926;
+  }
+}
+html { background: var(--bg); }
+body {
+  margin: 0; padding: 24px 32px 48px;
+  color: var(--fg); background: var(--bg);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased; word-wrap: break-word;
+}
+.markdown-body { max-width: 860px; margin: 0 auto; }
+.markdown-body > :first-child { margin-top: 0; }
+h1, h2, h3, h4, h5, h6 { margin: 1.5em 0 0.6em; font-weight: 600; line-height: 1.25; }
+h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; } h4 { font-size: 1em; } h5 { font-size: .875em; } h6 { font-size: .85em; color: var(--muted); }
+p, ul, ol, blockquote, pre, table, dl { margin: 0 0 1em; }
+a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
+ul, ol { padding-left: 2em; } li + li { margin-top: .25em; }
+li.task-list-item, ul li:has(> input[type=checkbox]) { list-style: none; }
+li > input[type=checkbox] { margin: 0 .4em 0 -1.4em; vertical-align: middle; }
+blockquote { padding: 0 1em; color: var(--quote); border-left: .25em solid var(--border); }
+code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 85%; }
+code { padding: .2em .4em; background: var(--code-bg); border-radius: 6px; }
+pre { padding: 16px; overflow: auto; background: var(--code-bg); border-radius: 6px; line-height: 1.45; }
+pre code { padding: 0; background: none; font-size: 100%; }
+pre code.hljs { padding: 0; background: none; }
+table { border-collapse: collapse; display: block; width: max-content; max-width: 100%; overflow: auto; }
+th, td { padding: 6px 13px; border: 1px solid var(--border); }
+th { font-weight: 600; } tr:nth-child(2n) { background: var(--code-bg); }
+img { max-width: 100%; }
+hr { height: .25em; margin: 24px 0; padding: 0; border: 0; background: var(--border); }
+mark { background: var(--mark); color: inherit; }
+.footnotes { font-size: .875em; color: var(--muted); border-top: 1px solid var(--border); padding-top: 1em; }

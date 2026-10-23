@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="preview.css">
+<link rel="stylesheet" href="hljs-light.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="hljs-dark.css" media="(prefers-color-scheme: dark)">
+<script src="highlight.min.js"></script>
+<script>
+  function ldSetBase(href) {
+    let b = document.querySelector('base');
+    if (!b) { b = document.createElement('base'); document.head.appendChild(b); }
+    b.href = href;
+  }
+  function ldRender(html) {
+    const c = document.getElementById('content');
+    c.innerHTML = html;
+    c.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  }
+  function ldScrollTo(fraction) {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo(0, Math.max(0, max * fraction));
+  }
+  // In-page anchors (e.g. footnotes) would otherwise resolve against <base>.
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a');
+    const href = a && a.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      const el = document.getElementById(decodeURIComponent(href.slice(1)));
+      if (el) el.scrollIntoView();
+    }
+  });
+</script>
+</head>
+<body><article id="content" class="markdown-body"></article></body>
+</html>
