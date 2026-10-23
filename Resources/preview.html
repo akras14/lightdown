@@ -6,21 +6,73 @@
 <link rel="stylesheet" href="hljs-light.css" media="(prefers-color-scheme: light)">
 <link rel="stylesheet" href="hljs-dark.css" media="(prefers-color-scheme: dark)">
 <script src="highlight.min.js"></script>
+<script src="mermaid.min.js"></script>
 <script>
   function ldSetBase(href) {
     let b = document.querySelector('base');
     if (!b) { b = document.createElement('base'); document.head.appendChild(b); }
     b.href = href;
   }
+  let ldLastHTML = '';
+  let ldLastFraction = 0;
+  let ldGeneration = 0;
+
   function ldRender(html) {
+    ldLastHTML = html;
+    const gen = ++ldGeneration;
     const c = document.getElementById('content');
     c.innerHTML = html;
-    c.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+    c.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
+    ldRenderMermaid(c, gen);
   }
   function ldScrollTo(fraction) {
+    ldLastFraction = fraction;
     const max = document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo(0, Math.max(0, max * fraction));
   }
+
+  // Mermaid: rendered SVGs are cached by theme + source, so editing other
+  // parts of the document doesn't re-render (or flicker) existing diagrams.
+  const ldDark = matchMedia('(prefers-color-scheme: dark)');
+  const ldMermaidCache = new Map();
+  let ldMermaidTheme = null;
+  let ldMermaidSeq = 0;
+
+  async function ldRenderMermaid(container, gen) {
+    const blocks = container.querySelectorAll('pre > code.language-mermaid');
+    if (!blocks.length) return;
+    const theme = ldDark.matches ? 'dark' : 'default';
+    if (theme !== ldMermaidTheme) {
+      mermaid.initialize({ startOnLoad: false, theme, securityLevel: 'strict' });
+      ldMermaidTheme = theme;
+    }
+    for (const code of blocks) {
+      const src = code.textContent;
+      const key = theme + '\n' + src;
+      const div = document.createElement('div');
+      div.className = 'mermaid';
+      let svg = ldMermaidCache.get(key);
+      if (svg === undefined) {
+        try {
+          await mermaid.parse(src);
+          svg = (await mermaid.render('ld-mermaid-' + (++ldMermaidSeq), src)).svg;
+          ldMermaidCache.set(key, svg);
+        } catch (e) {
+          if (gen !== ldGeneration) return;
+          const err = document.createElement('div');
+          err.className = 'mermaid-error';
+          err.textContent = 'Mermaid: ' + (e && e.message ? e.message : e);
+          code.parentElement.after(err);
+          continue;
+        }
+      }
+      if (gen !== ldGeneration) return; // a newer render replaced the DOM
+      div.innerHTML = svg;
+      code.parentElement.replaceWith(div);
+    }
+    ldScrollTo(ldLastFraction); // diagrams change the page height
+  }
+  ldDark.addEventListener('change', () => ldRender(ldLastHTML));
   // In-page anchors (e.g. footnotes) would otherwise resolve against <base>.
   document.addEventListener('click', e => {
     const a = e.target.closest('a');

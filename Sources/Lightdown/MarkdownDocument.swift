@@ -64,6 +64,20 @@ final class MarkdownDocument: NSDocument {
         let escapedTitle = title
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
+        // Only embed Mermaid (~2.7 MB) when the document actually has a diagram.
+        let mermaid = body.contains("class=\"language-mermaid\"") ? """
+        <script>\(resource("mermaid.min.js"))</script>
+        <script>
+        mermaid.initialize({ startOnLoad: false, theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default' });
+        document.querySelectorAll('pre > code.language-mermaid').forEach(code => {
+          const div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = code.textContent;
+          code.parentElement.replaceWith(div);
+        });
+        mermaid.run();
+        </script>
+        """ : ""
         return """
         <!doctype html>
         <html>
@@ -80,7 +94,8 @@ final class MarkdownDocument: NSDocument {
         <article class="markdown-body">
         \(body)
         </article>
-        <script>document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));</script>
+        <script>document.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));</script>
+        \(mermaid)
         </body>
         </html>
         """

@@ -40,3 +40,6 @@ img { max-width: 100%; }
 hr { height: .25em; margin: 24px 0; padding: 0; border: 0; background: var(--border); }
 mark { background: var(--mark); color: inherit; }
 .footnotes { font-size: .875em; color: var(--muted); border-top: 1px solid var(--border); padding-top: 1em; }
+.mermaid { margin: 0 0 1em; text-align: center; }
+.mermaid svg { max-width: 100%; height: auto; }
+.mermaid-error { margin: -0.5em 0 1em; font-size: .85em; color: #d1242f; white-space: pre-wrap; }
