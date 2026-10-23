@@ -16,6 +16,10 @@ private struct PinchZoom {
 final class EditorTextView: NSTextView {
     private var pinch = PinchZoom()
     override func magnify(with event: NSEvent) { pinch.handle(event) }
+
+    override func insertNewline(_ sender: Any?) {
+        if !continueTodoList() { super.insertNewline(sender) }
+    }
 }
 
 final class PreviewWebView: WKWebView {

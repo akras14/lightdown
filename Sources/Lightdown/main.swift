@@ -92,6 +92,8 @@ enum MainMenu {
         menu.addItem(item("Paste and Match Style", #selector(NSTextView.pasteAsPlainText(_:)), "v", [.command, .option, .shift]))
         menu.addItem(item("Select All", #selector(NSText.selectAll(_:)), "a"))
         menu.addItem(.separator())
+        menu.addItem(item("Toggle To-Do", #selector(EditorTextView.toggleTodo(_:)), "l"))
+        menu.addItem(.separator())
 
         let find = NSMenu(title: "Find")
         func findItem(_ title: String, _ key: String, _ tag: NSTextFinder.Action, _ mods: NSEvent.ModifierFlags = [.command]) {

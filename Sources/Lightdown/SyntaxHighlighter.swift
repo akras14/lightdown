@@ -20,7 +20,8 @@ final class SyntaxHighlighter: NSObject, NSTextStorageDelegate {
     // Order matters: later rules win over earlier ones.
     private let rules: [Rule] = [
         Rule(regex: re(#"^#{1,6}[ \t].*$"#)) { s in [.font: mono(s, .bold), .foregroundColor: NSColor.systemBlue] },
-        Rule(regex: re(#"^[ \t]*(?:[-*+]|\d+[.)])[ \t]"#)) { _ in [.foregroundColor: NSColor.systemOrange] },
+        Rule(regex: re(#"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[xX]\].*$"#)) { _ in [.foregroundColor: NSColor.tertiaryLabelColor] },
+        Rule(regex: re(#"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\](?=[ \t]|$))?"#)) { _ in [.foregroundColor: NSColor.systemOrange] },
         Rule(regex: re(#"^>.*$"#)) { _ in [.foregroundColor: NSColor.secondaryLabelColor] },
         Rule(regex: re(#"(\*\*|__)(?=\S)(.+?)(?<=\S)\1"#)) { s in [.font: mono(s, .bold)] },
         Rule(regex: re(#"(?<![*_\w])([*_])(?=\S)(.+?)(?<=\S)\1(?![*_\w])"#)) { s in

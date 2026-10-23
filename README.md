@@ -6,6 +6,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 - **Zoom.** ⌘= / ⌘- / ⌘0, or pinch on the trackpad. One zoom level covers the editor and the preview, and it's remembered between launches.
 - **GitHub-style Markdown** via [cmark-gfm](https://github.com/swiftlang/swift-cmark): tables, task lists, strikethrough, footnotes, autolinks.
+- **To-do lists.** ⌘L turns a line into a to-do (`- [ ] `), then checks and unchecks it, and works on several selected lines at once. Return on a to-do starts a new one; Return on an empty one ends the list.
 - **Mermaid diagrams** in fenced ` ```mermaid ` blocks.
 - **Syntax colouring** for code blocks in the preview, and for Markdown in the editor.
 - **Dark mode** support.
