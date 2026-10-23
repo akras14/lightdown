@@ -12,6 +12,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Lightdown"
 cp Info.plist "$APP/Contents/Info.plist"
 cp Resources/* "$APP/Contents/Resources/"
+cp LICENSE NOTICE "$APP/Contents/Resources/"
 codesign --force --sign - "$APP"
 echo "Built $APP"
 

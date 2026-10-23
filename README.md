@@ -51,3 +51,7 @@ These libraries are bundled in `Resources/`:
 This one is fetched by Swift Package Manager when you build:
 
 - [swift-cmark](https://github.com/swiftlang/swift-cmark), `gfm` branch: BSD 2-Clause
+
+## License
+
+Lightdown is licensed under the [Apache License 2.0](LICENSE). Third-party notices are in [NOTICE](NOTICE).
