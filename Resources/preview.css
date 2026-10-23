@@ -25,8 +25,20 @@ h3 { font-size: 1.25em; } h4 { font-size: 1em; } h5 { font-size: .875em; } h6 { 
 p, ul, ol, blockquote, pre, table, dl { margin: 0 0 1em; }
 a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
 ul, ol { padding-left: 2em; } li + li { margin-top: .25em; }
-li.task-list-item, ul li:has(> input[type=checkbox]) { list-style: none; }
-li > input[type=checkbox] { margin: 0 .4em 0 -1.4em; vertical-align: middle; }
+/* Task lists: no bullets, checkbox flush with the text column, tight rows. */
+ul:has(> li > input[type=checkbox]), ul:has(> li > p:first-child > input[type=checkbox]) { padding-left: 0; }
+li ul:has(> li > input[type=checkbox]) { padding-left: 1.5em; }
+li:has(> input[type=checkbox]), li:has(> p:first-child > input[type=checkbox]) { list-style: none; }
+li:has(> input[type=checkbox]) + li { margin-top: .1em; }
+li > input[type=checkbox], li > p:first-child > input[type=checkbox] {
+  -webkit-appearance: none; appearance: none;
+  width: .9em; height: .9em; margin: 0 .2em 0 0; vertical-align: -.1em;
+  border: 1.5px solid var(--muted); border-radius: .22em; background: transparent;
+}
+li > input[type=checkbox]:checked, li > p:first-child > input[type=checkbox]:checked {
+  border-color: var(--link);
+  background: var(--link) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+}
 blockquote { padding: 0 1em; color: var(--quote); border-left: .25em solid var(--border); }
 code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 85%; }
 code { padding: .2em .4em; background: var(--code-bg); border-radius: 6px; }
