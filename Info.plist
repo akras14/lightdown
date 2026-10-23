@@ -5,6 +5,7 @@
     <key>CFBundleName</key><string>Lightdown</string>
     <key>CFBundleDisplayName</key><string>Lightdown</string>
     <key>CFBundleExecutable</key><string>Lightdown</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundleIdentifier</key><string>com.alexkras.lightdown</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>0.1.0</string>
