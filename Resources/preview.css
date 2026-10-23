@@ -25,14 +25,16 @@ h3 { font-size: 1.25em; } h4 { font-size: 1em; } h5 { font-size: .875em; } h6 { 
 p, ul, ol, blockquote, pre, table, dl { margin: 0 0 1em; }
 a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
 ul, ol { padding-left: 2em; } li + li { margin-top: .25em; }
+li > ul, li > ol { margin: .25em 0 0; } /* nested lists: no extra gap after them */
 /* Task lists: no bullets, checkbox flush with the text column, tight rows. */
 ul:has(> li > input[type=checkbox]), ul:has(> li > p:first-child > input[type=checkbox]) { padding-left: 0; }
 li ul:has(> li > input[type=checkbox]) { padding-left: 1.5em; }
 li:has(> input[type=checkbox]), li:has(> p:first-child > input[type=checkbox]) { list-style: none; }
-li:has(> input[type=checkbox]) + li { margin-top: .1em; }
+li:has(> input[type=checkbox]) { line-height: 1.5; }
+li:has(> input[type=checkbox]) + li, li:has(> input[type=checkbox]) > ul { margin-top: .15em; }
 li > input[type=checkbox], li > p:first-child > input[type=checkbox] {
   -webkit-appearance: none; appearance: none;
-  width: .9em; height: .9em; margin: 0 .2em 0 0; vertical-align: -.1em;
+  width: .9em; height: .9em; margin: 0 .2em 0 0; vertical-align: middle; position: relative; top: -.08em;
   border: 1.5px solid var(--muted); border-radius: .22em; background: transparent;
 }
 li > input[type=checkbox]:checked, li > p:first-child > input[type=checkbox]:checked {
