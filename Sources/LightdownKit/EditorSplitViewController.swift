@@ -155,11 +155,12 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         tv.isContinuousSpellCheckingEnabled = false
         tv.smartInsertDeleteEnabled = false
         tv.textContainerInset = NSSize(width: 16, height: 20)
-        tv.backgroundColor = .textBackgroundColor
+        tv.backgroundColor = Theme.background
         tv.textStorage?.delegate = highlighter
 
         scrollView.hasVerticalScroller = true
         scrollView.drawsBackground = true
+        scrollView.backgroundColor = Theme.background
         scrollView.contentView.postsBoundsChangedNotifications = true
         NotificationCenter.default.addObserver(self, selector: #selector(editorDidScroll),
                                                name: NSView.boundsDidChangeNotification, object: scrollView.contentView)

@@ -1,8 +1,23 @@
 import AppKit
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        Theme.applySavedAppearance()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.build()
+    }
+
+    @objc func setAppearance(_ sender: NSMenuItem) {
+        Theme.appearance = Theme.Appearance(rawValue: sender.tag) ?? .system
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(setAppearance(_:)) {
+            menuItem.state = menuItem.tag == Theme.appearance.rawValue ? .on : .off
+        }
+        return true
     }
 
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { true }
@@ -148,6 +163,14 @@ enum MainMenu {
         menu.addItem(item("Show Outline", #selector(EditorSplitViewController.toggleOutline(_:)), "s", [.command, .control]))
         menu.addItem(item("Hide Preview", #selector(EditorSplitViewController.togglePreview(_:)), "p", [.command, .option]))
         menu.addItem(item("Hide Editor", #selector(EditorSplitViewController.toggleEditor(_:)), "e", [.command, .option]))
+        menu.addItem(.separator())
+        let appearance = NSMenu(title: "Appearance")
+        for option in Theme.Appearance.allCases {
+            let i = item(option.title, #selector(AppDelegate.setAppearance(_:)))
+            i.tag = option.rawValue
+            appearance.addItem(i)
+        }
+        menu.addItem(submenu(appearance))
         menu.addItem(.separator())
         menu.addItem(item("Enter Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f", [.command, .control]))
         return menu
