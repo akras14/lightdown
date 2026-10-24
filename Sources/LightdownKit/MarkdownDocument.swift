@@ -135,7 +135,11 @@ final class MarkdownDocument: NSDocument {
         <article class="markdown-body">
         \(body)
         </article>
-        <script>document.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));</script>
+        <script>\(resource("headings.js"))</script>
+        <script>
+        ldAddHeadingIds(document.body);
+        document.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
+        </script>
         \(mermaid)
         </body>
         </html>

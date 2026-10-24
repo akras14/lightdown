@@ -12,6 +12,7 @@ MainActor.assumeIsolated {
     previewChecks(t)
     imageChecks(t)
     exportChecks(t)
+    headingChecks(t)
 
     print(t.failures == 0 ? "✔ \(t.count) checks passed" : "✘ \(t.failures) of \(t.count) checks failed")
     exit(t.failures == 0 ? 0 : 1)

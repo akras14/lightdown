@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="hljs-dark.css" media="(prefers-color-scheme: dark)">
 <script src="highlight.min.js"></script>
 <script src="mermaid.min.js"></script>
+<script src="headings.js"></script>
 <script>
   function ldSetBase(href) {
     let b = document.querySelector('base');
@@ -22,6 +23,7 @@
     const gen = ++ldGeneration;
     const c = document.getElementById('content');
     c.innerHTML = html;
+    ldAddHeadingIds(c);
     c.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
     c.querySelectorAll('li input[type=checkbox]').forEach(el => { el.disabled = false; });
     ldRenderMermaid(c, gen);
