@@ -35,6 +35,48 @@ final class MarkdownDocument: NSDocument {
         editorController?.reloadFromDocument()
     }
 
+    // MARK: External changes
+
+    override func presentedItemDidChange() {
+        super.presentedItemDidChange()
+        DispatchQueue.main.async { self.reloadIfChangedOnDisk() }
+    }
+
+    /// Picks up edits made by other apps (git, Claude Code, another editor).
+    /// Reloads silently unless there are unsaved changes here too, in which case it asks.
+    func reloadIfChangedOnDisk() {
+        guard let url = fileURL, let type = fileType,
+              // Read fresh attributes: URL resource values are cached and would hide the change.
+              let modified = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.modificationDate] as? Date,
+              modified > (fileModificationDate ?? .distantPast),
+              !isAskingAboutExternalChange else { return }
+
+        guard isDocumentEdited, let window = windowControllers.first?.window else {
+            do { try revert(toContentsOf: url, ofType: type) } catch { NSLog("Lightdown: reload failed: \(error)") }
+            return
+        }
+
+        isAskingAboutExternalChange = true
+        let alert = NSAlert()
+        alert.messageText = "“\(displayName ?? url.lastPathComponent)” was changed by another app."
+        alert.informativeText = "You also have unsaved changes here. Reload the version on disk, or keep yours and overwrite it?"
+        alert.addButton(withTitle: "Reload from Disk")
+        alert.addButton(withTitle: "Keep My Version")
+        alert.beginSheetModal(for: window) { [weak self] response in
+            guard let self else { return }
+            self.isAskingAboutExternalChange = false
+            if response == .alertFirstButtonReturn {
+                try? self.revert(toContentsOf: url, ofType: type)
+            } else {
+                // Treat the disk version as seen so the next save overwrites it without another warning.
+                self.fileModificationDate = modified
+                self.autosave(withImplicitCancellability: false) { _ in }
+            }
+        }
+    }
+
+    private var isAskingAboutExternalChange = false
+
     override func printOperation(withSettings printSettings: [NSPrintInfo.AttributeKey: Any]) throws -> NSPrintOperation {
         guard let editor = editorController else { throw CocoaError(.featureUnsupported) }
         return editor.previewPrintOperation(printInfo: printInfo)

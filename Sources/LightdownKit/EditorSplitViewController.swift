@@ -40,7 +40,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     private weak var document: MarkdownDocument?
 
     private let highlighter = SyntaxHighlighter()
-    private var textView: EditorTextView!
+    private(set) var textView: EditorTextView!
     private var editorScrollView: NSScrollView!
     private var webView: PreviewWebView!
     private var editorItem: NSSplitViewItem!
@@ -145,8 +145,9 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     func reloadFromDocument() {
         guard isViewLoaded, let document else { return }
-        if textView.string != document.text {
-            textView.string = document.text
+        if textView.string != document.text, let storage = textView.textStorage {
+            // Replace only the part that changed so the caret and scroll position survive a reload.
+            storage.replaceChangedRange(with: document.text)
             textView.undoManager?.removeAllActions()
         }
         renderPreview()
