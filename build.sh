@@ -3,7 +3,7 @@
 set -e
 cd "$(dirname "$0")"
 
-swift build -c release
+swift build -c release --product Lightdown
 BIN="$(swift build -c release --show-bin-path)/Lightdown"
 
 APP=build/Lightdown.app

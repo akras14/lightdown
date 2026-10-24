@@ -26,18 +26,29 @@ You need macOS 13 or later and the Xcode Command Line Tools (`xcode-select --ins
 ./build.sh --install  # also copies it to /Applications
 ```
 
+Run the tests with:
+
+```sh
+swift run LightdownChecks
+```
+
+They're a small executable instead of an XCTest target because XCTest and Swift Testing don't run with the Command Line Tools alone.
+
 To make Lightdown the default for `.md` files, open **Get Info** on any `.md` file in Finder, choose Lightdown under **Open with**, then click **Change All…**.
 
 ## Project layout
 
 | Path | What it does |
 |------|--------------|
-| `Sources/Lightdown/EditorSplitViewController.swift` | Editor and preview panes, scroll sync, zoom, pane toggles |
-| `Sources/Lightdown/MarkdownDocument.swift` | Opening, saving, HTML export, printing |
-| `Sources/Lightdown/MarkdownRenderer.swift` | Markdown to HTML via cmark-gfm |
-| `Sources/Lightdown/SyntaxHighlighter.swift` | Markdown colouring in the editor |
-| `Sources/Lightdown/Zoom.swift` | Zoom steps and the saved zoom level |
-| `Sources/Lightdown/main.swift` | App startup and menus |
+| `Sources/LightdownKit/EditorSplitViewController.swift` | Editor and preview panes, scroll sync, zoom, pane toggles |
+| `Sources/LightdownKit/MarkdownDocument.swift` | Opening, saving, HTML export, printing |
+| `Sources/LightdownKit/MarkdownRenderer.swift` | Markdown to HTML via cmark-gfm |
+| `Sources/LightdownKit/SyntaxHighlighter.swift` | Markdown colouring in the editor |
+| `Sources/LightdownKit/Zoom.swift` | Zoom steps and the saved zoom level |
+| `Sources/LightdownKit/App.swift` | App startup and menus |
+| `Sources/LightdownKit/TodoList.swift`, `ListMove.swift` | To-do toggling and moving list items |
+| `Sources/Lightdown/main.swift` | Starts the app (the code lives in `LightdownKit`) |
+| `Checks/` | Test suite |
 | `Resources/preview.html`, `preview.css` | Preview page template and styles |
 | `scripts/make-icon.swift` | Builds `AppIcon.icns` from `icon-source.jpg` |
 
