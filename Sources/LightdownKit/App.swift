@@ -14,6 +14,7 @@ enum MainMenu {
         main.addItem(submenu(appMenu()))
         main.addItem(submenu(fileMenu()))
         main.addItem(submenu(editMenu()))
+        main.addItem(submenu(formatMenu()))
         main.addItem(submenu(viewMenu()))
         let window = windowMenu()
         main.addItem(submenu(window))
@@ -96,10 +97,6 @@ enum MainMenu {
         menu.addItem(item("Paste and Match Style", #selector(NSTextView.pasteAsPlainText(_:)), "v", [.command, .option, .shift]))
         menu.addItem(item("Select All", #selector(NSText.selectAll(_:)), "a"))
         menu.addItem(.separator())
-        menu.addItem(item("Toggle To-Do", #selector(EditorTextView.toggleTodo(_:)), "l"))
-        menu.addItem(item("Move Item Up", #selector(EditorTextView.moveItemUp(_:)), arrow(NSUpArrowFunctionKey), [.command, .shift]))
-        menu.addItem(item("Move Item Down", #selector(EditorTextView.moveItemDown(_:)), arrow(NSDownArrowFunctionKey), [.command, .shift]))
-        menu.addItem(.separator())
 
         let find = NSMenu(title: "Find")
         func findItem(_ title: String, _ key: String, _ tag: NSTextFinder.Action, _ mods: NSEvent.ModifierFlags = [.command]) {
@@ -118,6 +115,20 @@ enum MainMenu {
         let spelling = NSMenu(title: "Spelling and Grammar")
         spelling.addItem(item("Check Spelling While Typing", #selector(NSTextView.toggleContinuousSpellChecking(_:))))
         menu.addItem(submenu(spelling))
+        return menu
+    }
+
+    private static func formatMenu() -> NSMenu {
+        let menu = NSMenu(title: "Format")
+        menu.addItem(item("Bold", #selector(EditorTextView.formatBold(_:)), "b"))
+        menu.addItem(item("Italic", #selector(EditorTextView.formatItalic(_:)), "i"))
+        menu.addItem(item("Strikethrough", #selector(EditorTextView.formatStrikethrough(_:)), "x", [.command, .shift]))
+        menu.addItem(item("Inline Code", #selector(EditorTextView.formatInlineCode(_:)), "`", [.control]))
+        menu.addItem(item("Link", #selector(EditorTextView.formatLink(_:)), "k"))
+        menu.addItem(.separator())
+        menu.addItem(item("Toggle To-Do", #selector(EditorTextView.toggleTodo(_:)), "l"))
+        menu.addItem(item("Move Item Up", #selector(EditorTextView.moveItemUp(_:)), arrow(NSUpArrowFunctionKey), [.command, .shift]))
+        menu.addItem(item("Move Item Down", #selector(EditorTextView.moveItemDown(_:)), arrow(NSDownArrowFunctionKey), [.command, .shift]))
         return menu
     }
 

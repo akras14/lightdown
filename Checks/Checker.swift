@@ -8,7 +8,7 @@ final class Checker {
     private(set) var count = 0
     private var group = ""
 
-    func group(_ name: String, _ body: () -> Void) {
+    func group(_ name: String, _ body: @MainActor () -> Void) {
         group = name
         body()
     }
