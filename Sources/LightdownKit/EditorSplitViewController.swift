@@ -77,9 +77,6 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     private var editorItem: NSSplitViewItem!
     private var previewItem: NSSplitViewItem!
 
-    /// The preview page; tests point this at the repo's Resources folder.
-    static var previewTemplateURL = Bundle.main.url(forResource: "preview", withExtension: "html")
-
     private(set) var previewReady = false
     private var renderWorkItem: DispatchWorkItem?
 
@@ -167,7 +164,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         wv.navigationDelegate = self
         wv.allowsMagnification = false
         wv.setValue(false, forKey: "drawsBackground")
-        if let template = Self.previewTemplateURL {
+        if let template = AppResources.url("preview.html") {
             wv.loadFileURL(template, allowingReadAccessTo: URL(fileURLWithPath: "/"))
         }
         webView = wv
@@ -271,12 +268,18 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         }
     }
 
-    // MARK: Printing
+    // MARK: Copy HTML
 
-    func previewPrintOperation(printInfo: NSPrintInfo) -> NSPrintOperation {
-        let op = webView.printOperation(with: printInfo)
-        op.view?.frame = NSRect(origin: .zero, size: printInfo.paperSize)
-        return op
+    /// Copies the rendered HTML of the selection (or the whole document): as source for plain-text
+    /// apps and as formatted text for rich editors like Mail or Google Docs.
+    @IBAction func copyHTML(_ sender: Any?) {
+        let selection = textView.selectedRange()
+        let markdown = selection.length > 0 ? (textView.string as NSString).substring(with: selection) : textView.string
+        let html = MarkdownRenderer.html(from: markdown)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(html, forType: .string)
+        pasteboard.setString(html, forType: .html)
     }
 
     // MARK: Messages from the preview

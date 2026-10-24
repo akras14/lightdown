@@ -10,6 +10,9 @@ final class MarkdownDocument: NSDocument {
 
     override class var autosavesInPlace: Bool { true }
 
+    /// The editor's text if a window is open, else the last loaded text.
+    var currentText: String { editorController?.currentText ?? text }
+
     override func makeWindowControllers() {
         let controller = EditorSplitViewController(document: self)
         let window = NSWindow(contentViewController: controller)
@@ -76,11 +79,7 @@ final class MarkdownDocument: NSDocument {
     }
 
     private var isAskingAboutExternalChange = false
-
-    override func printOperation(withSettings printSettings: [NSPrintInfo.AttributeKey: Any]) throws -> NSPrintOperation {
-        guard let editor = editorController else { throw CocoaError(.featureUnsupported) }
-        return editor.previewPrintOperation(printInfo: printInfo)
-    }
+    var printCompletion: ((Bool) -> Void)?
 
     @IBAction func exportHTML(_ sender: Any?) {
         guard let window = windowControllers.first?.window else { return }
@@ -89,7 +88,7 @@ final class MarkdownDocument: NSDocument {
         panel.nameFieldStringValue = (displayName as NSString).deletingPathExtension + ".html"
         panel.beginSheetModal(for: window) { [weak self] response in
             guard response == .OK, let url = panel.url, let self else { return }
-            let body = MarkdownRenderer.html(from: self.editorController?.currentText ?? self.text)
+            let body = MarkdownRenderer.html(from: self.currentText)
             do {
                 try Self.standaloneHTML(title: self.displayName, body: body).write(to: url, atomically: true, encoding: .utf8)
             } catch {
@@ -98,11 +97,10 @@ final class MarkdownDocument: NSDocument {
         }
     }
 
-    static func standaloneHTML(title: String, body: String) -> String {
-        func resource(_ name: String) -> String {
-            guard let url = Bundle.main.url(forResource: name, withExtension: nil) else { return "" }
-            return (try? String(contentsOf: url, encoding: .utf8)) ?? ""
-        }
+    /// A self-contained HTML page with the preview's styles. `baseURL` resolves relative image paths.
+    static func standaloneHTML(title: String, body: String, baseURL: URL? = nil) -> String {
+        func resource(_ name: String) -> String { AppResources.text(name) }
+        let base = baseURL.map { "<base href=\"\($0.absoluteString)\">" } ?? ""
         let escapedTitle = title
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
@@ -127,6 +125,7 @@ final class MarkdownDocument: NSDocument {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>\(escapedTitle)</title>
+        \(base)
         <style>\(resource("preview.css"))</style>
         <style media="(prefers-color-scheme: light)">\(resource("hljs-light.css"))</style>
         <style media="(prefers-color-scheme: dark)">\(resource("hljs-dark.css"))</style>

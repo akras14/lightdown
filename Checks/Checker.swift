@@ -103,7 +103,7 @@ final class DocumentHarness {
     init(_ text: String, name: String = "note.md") {
         let resources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().appendingPathComponent("Resources")
-        EditorSplitViewController.previewTemplateURL = resources.appendingPathComponent("preview.html")
+        AppResources.directory = resources
 
         directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
