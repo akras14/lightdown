@@ -157,14 +157,8 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         super.viewDidLoad()
         splitView.isVertical = true
         splitView.dividerStyle = .thin
-        splitView.autosaveName = "LightdownSplitWithOutline"
-
-        outline.onSelect = { [weak self] heading in self?.jump(to: heading) }
-        outlineItem = NSSplitViewItem(sidebarWithViewController: outline)
-        outlineItem.minimumThickness = 150
-        outlineItem.maximumThickness = 400
-        outlineItem.isCollapsed = !UserDefaults.standard.bool(forKey: Self.showOutlineKey)
-        addSplitViewItem(outlineItem)
+        // New name: positions saved with the outline on the left don't fit this order.
+        splitView.autosaveName = "LightdownSplitOutlineRight"
 
         editorItem = NSSplitViewItem(viewController: makeEditorPane())
         editorItem.minimumThickness = 200
@@ -174,6 +168,16 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         editorItem.canCollapse = true
         addSplitViewItem(editorItem)
         addSplitViewItem(previewItem)
+
+        // The outline sits on the right, as in Obsidian, and keeps its width when the window resizes.
+        outline.onSelect = { [weak self] heading in self?.jump(to: heading) }
+        outlineItem = NSSplitViewItem(viewController: outline)
+        outlineItem.canCollapse = true
+        outlineItem.holdingPriority = .init(260)
+        outlineItem.minimumThickness = 150
+        outlineItem.maximumThickness = 400
+        outlineItem.isCollapsed = !UserDefaults.standard.bool(forKey: Self.showOutlineKey)
+        addSplitViewItem(outlineItem)
 
         NotificationCenter.default.addObserver(self, selector: #selector(applyZoom), name: Zoom.didChange, object: nil)
         applyZoom()

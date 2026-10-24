@@ -25,7 +25,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 **Window**
 
-- **Outline sidebar** (⌥⌘O). It lists the headings, jumps to one when you click it, and highlights the section you're in.
+- **Outline sidebar** (⌥⌘O), on the right as in Obsidian. It lists the headings, jumps to one when you click it, and highlights the section you're in.
 - **Word count** in a status bar under the editor, including for the selection.
 - **Appearance:** View → Appearance → System, Light or Dark. The editor and preview share one colour scheme.
 - **Hide either pane:** ⌥⌘E hides the editor, ⌥⌘P hides the preview.
