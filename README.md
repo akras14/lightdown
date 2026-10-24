@@ -12,6 +12,8 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 **Editing**
 
+![Editing: formatting, nested lists, to-dos and a pasted image, with the source on the left and the preview on the right](media/screenshots/editing.png)
+
 - **Zoom.** ⌘= / ⌘- / ⌘0, or pinch on the trackpad. One zoom level covers the editor and the preview, and it's remembered between launches.
 - **Formatting shortcuts.** ⌘B bold, ⌘I italic, ⇧⌘X strikethrough, ⌃` inline code, ⌘K link. Each one toggles, and applies to the word at the cursor when nothing is selected. ⌘K uses a copied URL as the link target.
 - **Lists.** Return continues bullet, numbered and to-do lists; Return on an empty item moves it up a level or ends the list. Tab / ⇧Tab indent and outdent items with their sub-items, and numbered lists renumber themselves.
@@ -22,6 +24,8 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 **Preview**
 
+![Preview: a table, a Mermaid diagram, highlighted Swift, a heading link and a footnote](media/screenshots/preview.png)
+
 - **GitHub-style Markdown** via [cmark-gfm](https://github.com/swiftlang/swift-cmark): tables, task lists, strikethrough, footnotes, autolinks.
 - **Heading links.** Headings get GitHub-style IDs, so `[see setup](#setup)` jumps to them.
 - **Mermaid diagrams** in fenced ` ```mermaid ` blocks, and syntax colouring for code.
@@ -29,12 +33,16 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 **Window**
 
+![Window: the dark theme with the outline sidebar open on the right and the word count at the bottom](media/screenshots/window.png)
+
 - **Outline sidebar** (⌥⌘O), on the right as in Obsidian. It lists the headings, jumps to one when you click it, and highlights the section you're in.
-- **Word count** in a status bar under the editor, including for the selection.
+- **Word count** in a status bar along the bottom of the window, including for the selection.
 - **Appearance:** View → Appearance → System, Light or Dark. The editor and preview share one colour scheme.
 - **Hide either pane:** ⌥⌘E hides the editor, ⌥⌘P hides the preview. ⌥⌘0, or double-clicking the divider, splits them 50/50 again.
 
 **Files**
+
+![Files: three documents open as tabs in one window](media/screenshots/files.png)
 
 - **Standard Mac documents:** autosave, version history, tabs, Open Recent, find and replace. The documents you had open come back when you reopen Lightdown.
 - **Export** to HTML (⇧⌘E) or PDF, **Copy HTML** (⌥⌘C) for pasting into a blog or email, and **print**. PDFs and printouts are always at normal size and in light colours.
