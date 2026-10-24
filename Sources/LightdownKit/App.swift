@@ -9,12 +9,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         NSApp.mainMenu = MainMenu.build()
     }
 
-    @objc func setAppearance(_ sender: NSMenuItem) {
+    // Not "setAppearance:": views, windows and NSApp already have a setter by that name, and the
+    // menu action would reach them first through the responder chain.
+    @objc func chooseAppearance(_ sender: NSMenuItem) {
         Theme.appearance = Theme.Appearance(rawValue: sender.tag) ?? .system
     }
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        if menuItem.action == #selector(setAppearance(_:)) {
+        if menuItem.action == #selector(chooseAppearance(_:)) {
             menuItem.state = menuItem.tag == Theme.appearance.rawValue ? .on : .off
         }
         return true
@@ -166,7 +168,7 @@ enum MainMenu {
         menu.addItem(.separator())
         let appearance = NSMenu(title: "Appearance")
         for option in Theme.Appearance.allCases {
-            let i = item(option.title, #selector(AppDelegate.setAppearance(_:)))
+            let i = item(option.title, #selector(AppDelegate.chooseAppearance(_:)))
             i.tag = option.rawValue
             appearance.addItem(i)
         }
