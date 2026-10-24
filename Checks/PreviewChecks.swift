@@ -4,6 +4,18 @@ import WebKit
 
 @MainActor
 func previewChecks(_ t: Checker) {
+    t.group("task states") {
+        func checked(_ markdown: String) -> [Bool] {
+            let html = MarkdownRenderer.html(from: markdown)
+            return html.components(separatedBy: "<input type=\"checkbox\"").dropFirst().map { $0.hasPrefix(" checked") }
+        }
+        t.expect(checked("- [ ] press ⌘L: plain → `- [ ]` → `- [x]`"), [false], "[x] later in the text doesn't check it")
+        t.expect(checked("- [x] done, unlike `- [ ]`"), [true], "checked with [ ] later in the text")
+        t.expect(checked("- [ ] a\n- [X] b\n  - [ ] c [x]"), [false, true, false], "nested and capital X")
+        t.expect(checked("1. [ ] numbered [x]\n2) [x] paren"), [false, true], "numbered markers")
+        t.expect(checked("- [ ] émoji 😀 then [x]"), [false], "multi-byte text before [x]")
+    }
+
     t.group("source positions") {
         let html = MarkdownRenderer.html(from: "# Title\n\n- [ ] task\n", sourcePositions: true)
         t.expect(html.contains("<li data-sourcepos=\"3:1-3:10\">"), true, "task item tagged with its line")
