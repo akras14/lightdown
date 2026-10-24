@@ -6,6 +6,15 @@ import UniformTypeIdentifiers
 extension EditorTextView {
     static let imageFolderName = "images"
 
+    /// Whether `pasteboard` holds images we can paste: image files, or image data without text.
+    static func hasImages(_ pasteboard: NSPasteboard) -> Bool {
+        let files = pasteboard.canReadObject(forClasses: [NSURL.self], options: [
+            .urlReadingFileURLsOnly: true,
+            .urlReadingContentsConformToTypes: [UTType.image.identifier],
+        ])
+        return files || (pasteboard.string(forType: .string) == nil && pasteboard.availableType(from: [.png, .tiff]) != nil)
+    }
+
     /// Inserts Markdown image links for the images on `pasteboard` at `range`.
     /// Returns false when the pasteboard holds no images, so the caller can fall back to the default.
     func insertImages(from pasteboard: NSPasteboard, at range: NSRange) -> Bool {

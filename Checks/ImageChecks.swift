@@ -62,4 +62,33 @@ func imageChecks(_ t: Checker) {
         pasteboard.setString("just text", forType: .string)
         t.expect(view.insertImages(from: pasteboard, at: NSRange(location: 0, length: 0)), false, "text paste unaffected")
     }
+
+    t.group("paste menu with an image on the clipboard") {
+        let h = DocumentHarness("Before\n")
+        defer { h.close() }
+        let view = h.editor.textView!
+        let general = NSPasteboard.general
+        let saved = general.pasteboardItems?.map { item -> NSPasteboardItem in
+            let copy = NSPasteboardItem()
+            for type in item.types { if let data = item.data(forType: type) { copy.setData(data, forType: type) } }
+            return copy
+        } ?? []
+        defer { general.clearContents(); general.writeObjects(saved) }
+
+        let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 2, pixelsHigh: 2, bitsPerSample: 8,
+                                   samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                   colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+        general.clearContents()
+        general.setData(rep.representation(using: .png, properties: [:])!, forType: .png)
+
+        // Go through the menu, like ⌘V: validation first, then the action.
+        let paste = NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        t.expect(view.validateMenuItem(paste), true, "Paste is enabled with only a screenshot on the clipboard")
+        view.setSelectedRange(NSRange(location: 7, length: 0))
+        view.paste(nil)
+        t.expect(h.text.hasPrefix("Before\n![pasted-"), true, "⌘V inserts the image link (got \(h.text.debugDescription))")
+
+        general.clearContents()
+        t.expect(view.validateMenuItem(paste), false, "still disabled with an empty clipboard")
+    }
 }

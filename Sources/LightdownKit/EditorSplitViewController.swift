@@ -33,6 +33,13 @@ final class EditorTextView: NSTextView {
         if !insertImages(from: .general, at: selectedRange()) { super.paste(sender) }
     }
 
+    // A plain-text view disables Paste when the clipboard holds only an image (e.g. a screenshot),
+    // so ⌘V would never reach paste(_:) above.
+    override func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+        if item.action == #selector(paste(_:)), Self.hasImages(.general) { return true }
+        return super.validateUserInterfaceItem(item)
+    }
+
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         let index = characterIndexForInsertion(at: convert(sender.draggingLocation, from: nil))
         if insertImages(from: sender.draggingPasteboard, at: NSRange(location: index, length: 0)) {
