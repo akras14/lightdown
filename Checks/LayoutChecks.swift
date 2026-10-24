@@ -77,7 +77,7 @@ func layoutChecks(_ t: Checker) {
         split.layoutSubtreeIfNeeded()
         @MainActor func frame(_ v: NSView) -> NSRect { v.convert(v.bounds, to: split) }
         let editor = h.editor.textView.enclosingScrollView!, preview = h.editor.webView!, outline = h.editor.outline.view
-        let editorBefore = frame(editor)
+        let editorBefore = frame(editor), previewBefore = frame(preview)
 
         h.editor.toggleOutline(nil)
         defer { h.editor.toggleOutline(nil) }
@@ -86,8 +86,9 @@ func layoutChecks(_ t: Checker) {
         t.expect(frame(editor).minX, 0, "editor still starts at the left edge")
         t.expect(abs(frame(outline).maxX - split.bounds.width) < 1, true, "outline ends at the right edge (\(frame(outline)))")
         t.expect(frame(outline).minX >= frame(preview).maxX, true, "outline is right of the preview")
-        t.expect(abs(frame(editor).width - editorBefore.width) < 2, true,
-                 "opening it doesn't squeeze the editor (\(Int(editorBefore.width)) → \(Int(frame(editor).width)))")
+        let shareBefore = editorBefore.width / (editorBefore.width + previewBefore.width)
+        let shareOpen = frame(editor).width / (frame(editor).width + frame(preview).width)
+        t.expect(abs(shareOpen - shareBefore) < 0.01, true, "editor keeps its share of the space (\(shareBefore) → \(shareOpen))")
     }
 
     // Regression: opening and closing the outline left the preview narrower each time.
@@ -150,5 +151,35 @@ func layoutChecks(_ t: Checker) {
         let item = MainMenu.build().items.lazy.compactMap { $0.submenu?.item(withTitle: "Split Evenly") }.first
         t.expect(item?.keyEquivalent, "0", "Split Evenly is ⌥⌘0")
         t.expect(item?.keyEquivalentModifierMask, [.command, .option])
+    }
+
+    // Regression: after Split Evenly, opening or closing the outline left the split uneven.
+    t.group("outline keeps the editor / preview proportions") {
+        let h = DocumentHarness("# One\n")
+        defer { h.close() }
+        let window = h.editor.view.window!
+        window.setFrame(NSRect(x: -5000, y: -5000, width: 1400, height: 760), display: true)
+        window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
+        let split = h.editor.splitView
+        @MainActor func share() -> CGFloat {
+            split.layoutSubtreeIfNeeded()
+            let e = split.arrangedSubviews[0].frame.width, p = split.arrangedSubviews[1].frame.width
+            return e / (e + p)
+        }
+        @MainActor func pct(_ x: CGFloat) -> String { "\(Int((x * 100).rounded()))%" }
+        for start in [nil, 400.0, 900.0] as [CGFloat?] {
+            if let start { split.setPosition(start, ofDividerAt: 0) } else { h.editor.splitEvenly(nil) }
+            let before = share()
+            h.editor.toggleOutline(nil); waitUntil(timeout: 0.3) { false }
+            let open = share()
+            h.editor.splitEvenly(nil)
+            let evenOpen = share()
+            h.editor.toggleOutline(nil); waitUntil(timeout: 0.3) { false }
+            let closed = share()
+            t.expect(abs(open - before) < 0.01, true, "\(start.map { "from \(Int($0))" } ?? "from even"): opening \(pct(before)) → \(pct(open))")
+            t.expect(abs(closed - evenOpen) < 0.01 && abs(evenOpen - 0.5) < 0.01, true,
+                     "\(start.map { "from \(Int($0))" } ?? "from even"): even with the outline open, then closing: \(pct(evenOpen)) → \(pct(closed))")
+        }
     }
 }

@@ -378,20 +378,12 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     // MARK: Layout toggles
 
     @IBAction func toggleOutline(_ sender: Any?) {
-        // Opening the outline takes its room from the preview; closing it should give that room back
-        // to the preview alone, so pin the editor's width meanwhile. Otherwise the freed width was
-        // shared between both panes, and every open and close moved some of the preview to the editor.
-        let closing = !outlineItem.isCollapsed
-        let pinned = closing && !editorItem.isCollapsed && !previewItem.isCollapsed
-            ? splitView.arrangedSubviews[0].frame.width : nil
-        if let pinned { editorItem.minimumThickness = pinned; editorItem.maximumThickness = pinned }
-        NSAnimationContext.runAnimationGroup({ _ in
-            outlineItem.animator().isCollapsed.toggle()
-        }, completionHandler: { [weak self] in
-            guard let self, pinned != nil else { return }
-            self.editorItem.minimumThickness = Self.paneMinimum
-            self.editorItem.maximumThickness = NSSplitViewItem.unspecifiedDimension
-        })
+        // Keep the editor's share of the space, so a 50/50 split stays 50/50 with the outline open or
+        // closed. (Left to AppKit, each open and close moved the divider.) Not animated, so the panes
+        // don't drift and then snap back.
+        let share = editorShare
+        outlineItem.isCollapsed.toggle()
+        if let share { setEditorShare(share) }
         UserDefaults.standard.set(!outlineItem.isCollapsed, forKey: Self.showOutlineKey)
         if !outlineItem.isCollapsed { outline.highlightSection(atLine: textView.topVisibleLine()) }
     }
@@ -405,15 +397,27 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         view.window?.makeFirstResponder(textView)
     }
 
+    /// The editor's fraction of the width it shares with the preview, when both are showing.
+    private var editorShare: CGFloat? {
+        guard !editorItem.isCollapsed, !previewItem.isCollapsed else { return nil }
+        splitView.layoutSubtreeIfNeeded()
+        let editor = splitView.arrangedSubviews[0].frame.width, preview = splitView.arrangedSubviews[1].frame.width
+        return editor + preview > 0 ? editor / (editor + preview) : nil
+    }
+
+    private func setEditorShare(_ share: CGFloat) {
+        splitView.layoutSubtreeIfNeeded()
+        // The panes' views sit in wrapper views; the split view's arranged subviews have the real frames.
+        let editor = splitView.arrangedSubviews[0].frame, preview = splitView.arrangedSubviews[1].frame
+        splitView.setPosition(editor.minX + (preview.maxX - editor.minX - splitView.dividerThickness) * share, ofDividerAt: 0)
+    }
+
     /// Gives the editor and preview the same width (⌥⌘0, or double-click the divider between them),
     /// showing whichever was hidden.
     @IBAction func splitEvenly(_ sender: Any?) {
         editorItem.isCollapsed = false
         previewItem.isCollapsed = false
-        splitView.layoutSubtreeIfNeeded()
-        // The panes' views sit in wrapper views; the split view's arranged subviews have the real frames.
-        let editor = splitView.arrangedSubviews[0].frame, preview = splitView.arrangedSubviews[1].frame
-        splitView.setPosition(editor.minX + (preview.maxX - editor.minX - splitView.dividerThickness) / 2, ofDividerAt: 0)
+        setEditorShare(0.5)
     }
 
     override func splitView(_ splitView: NSSplitView, shouldCollapseSubview subview: NSView,
