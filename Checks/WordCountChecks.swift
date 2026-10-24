@@ -13,9 +13,14 @@ func wordCountChecks(_ t: Checker) {
 
         let h = DocumentHarness("one two three four\n")
         defer { h.close() }
-        let window = h.editor.view.window!
-        t.expect(waitUntil { window.subtitle == "4 words" }, true, "window subtitle (got \(window.subtitle))")
+        let label = h.editor.wordCountLabel
+        t.expect(waitUntil { label.stringValue == "4 words" }, true, "status bar (got \(label.stringValue))")
         h.editor.textView.setSelectedRange(NSRange(location: 0, length: 7))
-        t.expect(window.subtitle, "2 of 4 words", "selection")
+        t.expect(label.stringValue, "2 of 4 words", "selection")
+
+        // Typing updates the count.
+        h.editor.textView.setSelectedRange(NSRange(location: (h.text as NSString).length, length: 0))
+        h.editor.textView.insertText("five six", replacementRange: h.editor.textView.selectedRange())
+        t.expect(waitUntil { label.stringValue == "6 words" }, true, "typing updates it (got \(label.stringValue))")
     }
 }

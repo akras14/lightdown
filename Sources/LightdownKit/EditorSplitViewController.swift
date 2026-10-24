@@ -59,6 +59,12 @@ final class EditorTextView: NSTextView {
     }
 }
 
+/// A view filled with the editor background, so the status bar matches the text area in both themes.
+final class BackgroundView: NSView {
+    override var wantsUpdateLayer: Bool { true }
+    override func updateLayer() { layer?.backgroundColor = Theme.background.cgColor }
+}
+
 /// WKUserContentController retains its handlers; this keeps it from retaining the controller.
 final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
     private weak var target: WKScriptMessageHandler?
@@ -176,8 +182,35 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
         textView = tv
         editorScrollView = scrollView
+        // A slim status bar under the editor for the word count. (The window subtitle didn't
+        // redraw reliably while typing once documents were open as tabs.)
+        wordCountLabel.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        wordCountLabel.textColor = .secondaryLabelColor
+        wordCountLabel.alignment = .right
+        wordCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        let separator = NSBox()
+        separator.boxType = .separator
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+
+        let container = BackgroundView()
+        container.addSubview(scrollView)
+        container.addSubview(separator)
+        container.addSubview(wordCountLabel)
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: container.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            separator.topAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            separator.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            wordCountLabel.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 3),
+            wordCountLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -4),
+            wordCountLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            wordCountLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
+        ])
         let vc = NSViewController()
-        vc.view = scrollView
+        vc.view = container
         return vc
     }
 
@@ -218,7 +251,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     private func renderPreview() {
         documentWordCount = WordCount.count(in: textView.string)
-        updateWordCountSubtitle()
+        updateWordCount()
         outline.update(OutlineParser.headings(in: textView.string))
         outline.highlightSection(atLine: textView.topVisibleLine())
         guard previewReady else { return }
@@ -237,14 +270,15 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     // MARK: Word count
 
     private var documentWordCount = 0
+    private(set) var wordCountLabel = NSTextField(labelWithString: "")
 
     func textViewDidChangeSelection(_ notification: Notification) {
-        updateWordCountSubtitle()
+        updateWordCount()
     }
 
-    private func updateWordCountSubtitle() {
+    private func updateWordCount() {
         let selection = textView.selectedRange()
-        view.window?.subtitle = selection.length > 0
+        wordCountLabel.stringValue = selection.length > 0
             ? WordCount.label(WordCount.count(in: (textView.string as NSString).substring(with: selection)), of: documentWordCount)
             : WordCount.label(documentWordCount)
     }

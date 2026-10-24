@@ -176,7 +176,7 @@ print(Greeting(name: "Lightdown").message())
 
 ## 11. Word count
 
-- [ ] The title bar shows the word count, e.g. "1,234 words"
+- [ ] The status bar under the editor shows the word count, e.g. "1,234 words"
 - [ ] Select this paragraph: it changes to "N of 1,234 words"
 - [ ] Typing updates it
 

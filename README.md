@@ -26,7 +26,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 **Window**
 
 - **Outline sidebar** (⌃⌘S). It lists the headings, jumps to one when you click it, and highlights the section you're in.
-- **Word count** in the title bar, including for the selection.
+- **Word count** in a status bar under the editor, including for the selection.
 - **Appearance:** View → Appearance → System, Light or Dark. The editor and preview share one colour scheme.
 - **Hide either pane:** ⌥⌘E hides the editor, ⌥⌘P hides the preview.
 
