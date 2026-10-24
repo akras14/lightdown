@@ -18,7 +18,15 @@ final class EditorTextView: NSTextView {
     override func magnify(with event: NSEvent) { pinch.handle(event) }
 
     override func insertNewline(_ sender: Any?) {
-        if !continueTodoList() { super.insertNewline(sender) }
+        if !continueList() { super.insertNewline(sender) }
+    }
+
+    override func insertTab(_ sender: Any?) {
+        if !shiftListItems(indent: true) { super.insertTab(sender) }
+    }
+
+    override func insertBacktab(_ sender: Any?) {
+        if !shiftListItems(indent: false) { super.insertBacktab(sender) }
     }
 
     // ⇧⌘↑/↓ move list items; elsewhere they keep selecting to the start/end of the document.

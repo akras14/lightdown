@@ -62,22 +62,6 @@ enum TodoList {
             line.isBlank || line.state == target ? original : line.rendered(as: target)
         }
     }
-
-    enum Continuation {
-        case insert(String)   // text to insert at the caret, starting with "\n"
-        case endList          // empty item: remove its marker instead of adding a line
-    }
-
-    /// What Return should do on a task line, or nil to fall back to a normal newline.
-    static func continuation(beforeCaret: String, line: String) -> Continuation? {
-        let whole = Line(line)
-        if whole.state != .plain, whole.text.trimmingCharacters(in: .whitespaces).isEmpty { return .endList }
-        let item = Line(beforeCaret)
-        guard item.state != .plain, let marker = item.marker else { return nil }
-        var next = marker
-        if let n = Int(marker.dropLast()) { next = "\(n + 1)\(marker.last!)" }
-        return .insert("\n\(item.indent)\(next) [ ] ")
-    }
 }
 
 extension EditorTextView {
@@ -110,27 +94,5 @@ extension EditorTextView {
         } else {
             setSelectedRange(NSRange(location: lineRange.location, length: (replacement as NSString).length - (trailingNewline ? 1 : 0)))
         }
-    }
-
-    /// Handles Return on a task line. Returns false to let the text view insert a plain newline.
-    func continueTodoList() -> Bool {
-        let selection = selectedRange()
-        guard selection.length == 0 else { return false }
-        let text = string as NSString
-        let lineRange = text.lineRange(for: NSRange(location: selection.location, length: 0))
-        let lineStart = lineRange.location
-        let beforeCaret = text.substring(with: NSRange(location: lineStart, length: selection.location - lineStart))
-        let line = text.substring(with: lineRange).trimmingCharacters(in: .newlines)
-
-        switch TodoList.continuation(beforeCaret: beforeCaret, line: line) {
-        case .insert(let s)?:
-            insertText(s, replacementRange: selection)
-        case .endList?:
-            let lineEnd = lineStart + (line as NSString).length
-            insertText("", replacementRange: NSRange(location: lineStart, length: lineEnd - lineStart))
-        case nil:
-            return false
-        }
-        return true
     }
 }

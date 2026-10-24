@@ -41,21 +41,21 @@ func todoListChecks(_ t: Checker) {
 
     t.group("todo return") {
         let h = TextHarness("- [x] one|")
-        t.expect(h.view.continueTodoList(), true)
+        t.expect(h.view.continueList(), true)
         t.expect(h.marked, "- [x] one\n- [ ] |")
-        t.expect(h.view.continueTodoList(), true)
+        t.expect(h.view.continueList(), true)
         t.expect(h.marked, "- [x] one\n|", "empty item ends list")
 
         h.set("- [ ] foo|bar")
-        _ = h.view.continueTodoList()
+        _ = h.view.continueList()
         t.expect(h.marked, "- [ ] foo\n- [ ] |bar", "split")
 
         h.set("  2. [ ] two|")
-        _ = h.view.continueTodoList()
+        _ = h.view.continueList()
         t.expect(h.marked, "  2. [ ] two\n  3. [ ] |", "numbered")
 
         h.set("- [ ] |foo")
-        _ = h.view.continueTodoList()
+        _ = h.view.continueList()
         t.expect(h.view.string, "- [ ] \n- [ ] foo", "at start of text")
     }
 }
