@@ -118,7 +118,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     private func makeEditorPane() -> NSViewController {
         let scrollView = NSScrollView()
-        let tv = EditorTextView(frame: NSRect(origin: .zero, size: scrollView.contentSize))
+        // TextKit 1: scroll sync needs exact line geometry from NSLayoutManager.
+        let tv = EditorTextView(usingTextLayoutManager: false)
+        tv.frame = NSRect(origin: .zero, size: scrollView.contentSize)
+        tv.layoutManager?.allowsNonContiguousLayout = true
         tv.minSize = .zero
         tv.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
         tv.isVerticallyResizable = true
@@ -196,7 +199,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         guard previewReady else { return }
         let html = MarkdownRenderer.html(from: textView.string, sourcePositions: true)
         let base = (document?.fileURL?.deletingLastPathComponent() ?? FileManager.default.homeDirectoryForCurrentUser).absoluteString
-        let js = "ldSetBase(\(jsString(base))); ldRender(\(jsString(html))); ldScrollTo(\(scrollFraction()));"
+        let js = "ldSetBase(\(jsString(base))); ldRender(\(jsString(html))); \(syncScript())"
         webView.evaluateJavaScript(js)
     }
 
@@ -206,19 +209,23 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         return String(array.dropFirst().dropLast())
     }
 
-    // MARK: Scroll sync (editor -> preview)
+    // MARK: Scroll sync
 
-    private func scrollFraction() -> Double {
-        let clip = editorScrollView.contentView
-        let docHeight = editorScrollView.documentView?.frame.height ?? 0
-        let maxY = docHeight - clip.bounds.height
-        guard maxY > 0 else { return 0 }
-        return min(1, max(0, clip.bounds.origin.y / maxY))
+    /// Ignore editor scroll events caused by following the preview, so the panes don't fight.
+    private var followingPreviewUntil = Date.distantPast
+
+    private func syncScript() -> String {
+        "ldScrollToLine(\(textView.topVisibleLine()), \(textView.isScrolledToBottom));"
     }
 
     @objc private func editorDidScroll() {
-        guard previewReady else { return }
-        webView.evaluateJavaScript("ldScrollTo(\(scrollFraction()))")
+        guard previewReady, Date() >= followingPreviewUntil else { return }
+        webView.evaluateJavaScript(syncScript())
+    }
+
+    private func previewDidScroll(toLine line: Double, atBottom: Bool) {
+        followingPreviewUntil = Date().addingTimeInterval(0.15)
+        if atBottom { textView.scrollToBottom() } else { textView.scrollToLine(line) }
     }
 
     // MARK: Zoom
@@ -287,6 +294,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? [String: Any], let type = body["type"] as? String else { return }
         switch type {
+        case "previewScroll":
+            if let line = body["line"] as? Double {
+                previewDidScroll(toLine: line, atBottom: body["atBottom"] as? Bool ?? false)
+            }
         case "toggleTask":
             if let line = body["line"] as? Int { textView.toggleTaskCheckbox(line: line - 1) }
         default:

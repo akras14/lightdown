@@ -15,11 +15,11 @@
     b.href = href;
   }
   let ldLastHTML = '';
-  let ldLastFraction = 0;
   let ldGeneration = 0;
 
   function ldRender(html) {
     ldLastHTML = html;
+    ldAnchors = null;
     const gen = ++ldGeneration;
     const c = document.getElementById('content');
     c.innerHTML = html;
@@ -28,11 +28,89 @@
     c.querySelectorAll('li input[type=checkbox]').forEach(el => { el.disabled = false; });
     ldRenderMermaid(c, gen);
   }
-  function ldScrollTo(fraction) {
-    ldLastFraction = fraction;
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo(0, Math.max(0, max * fraction));
+  // Scroll sync. Elements carry data-sourcepos="startLine:col-endLine:col"; lines are 1-based
+  // and fractional (12.5 = halfway through line 12), matching the editor.
+  let ldAnchors = null;
+  let ldLastLine = 1, ldLastAtBottom = false;
+  let ldLeader = 'editor';
+  let ldIgnoreScrollUntil = 0;
+
+  function ldGetAnchors() {
+    if (ldAnchors) return ldAnchors;
+    const list = [];
+    document.querySelectorAll('#content [data-sourcepos]').forEach(el => {
+      const m = /^(\d+):\d+-(\d+):\d+/.exec(el.dataset.sourcepos);
+      if (!m) return;
+      const r = el.getBoundingClientRect();
+      if (r.height === 0) return;
+      list.push({ start: +m[1], end: Math.max(+m[1], +m[2]), top: r.top + scrollY, bottom: r.bottom + scrollY });
+    });
+    return (ldAnchors = list);
   }
+
+  // The innermost element whose `key` value is the largest one not past `value`.
+  function ldPick(list, key, value) {
+    let best = null;
+    for (const a of list) {
+      if (a[key] > value) continue;
+      if (!best || a[key] > best[key] || (a[key] === best[key] && a.end - a.start < best.end - best.start)) best = a;
+    }
+    return best;
+  }
+
+  function ldYForLine(line) {
+    const anchors = ldGetAnchors();
+    if (!anchors.length) return 0;
+    const first = anchors.reduce((a, b) => (b.start < a.start ? b : a));
+    if (line < first.start) return first.top * Math.max(0, line) / first.start;
+    const a = ldPick(anchors, 'start', line);
+    if (line < a.end + 1) return a.top + (line - a.start) / (a.end - a.start + 1) * (a.bottom - a.top);
+    const next = anchors.filter(b => b.start > a.end).reduce((x, b) => (!x || b.start < x.start ? b : x), null);
+    if (!next) return a.bottom;
+    const t = (line - a.end - 1) / Math.max(1, next.start - a.end - 1);
+    return a.bottom + Math.min(1, t) * (next.top - a.bottom);
+  }
+
+  function ldLineForY(y) {
+    const anchors = ldGetAnchors();
+    if (!anchors.length) return 1;
+    const first = anchors.reduce((a, b) => (b.top < a.top ? b : a));
+    if (y < first.top) return first.start * y / Math.max(1, first.top);
+    const a = ldPick(anchors, 'top', y);
+    if (y < a.bottom) return a.start + (y - a.top) / Math.max(1, a.bottom - a.top) * (a.end - a.start + 1);
+    const next = anchors.filter(b => b.top >= a.bottom).reduce((x, b) => (!x || b.top < x.top ? b : x), null);
+    if (!next) return a.end + 1;
+    const t = (y - a.bottom) / Math.max(1, next.top - a.bottom);
+    return a.end + 1 + Math.min(1, t) * Math.max(0, next.start - a.end - 1);
+  }
+
+  function ldScrollToLine(line, atBottom) {
+    ldLastLine = line; ldLastAtBottom = atBottom; ldLeader = 'editor';
+    ldIgnoreScrollUntil = performance.now() + 150;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo(0, atBottom ? max : Math.min(max, ldYForLine(line)));
+  }
+
+  // Report preview scrolling to the editor: right away, then once more 30ms later for the final
+  // position. (Not requestAnimationFrame: WebKit pauses it when the window isn't visible.)
+  let ldScrollTimer = null;
+  function ldReportScroll() {
+    ldLeader = 'preview';
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    ldPost({ type: 'previewScroll', line: ldLineForY(window.scrollY), atBottom: max > 0 && window.scrollY >= max - 1 });
+  }
+  window.addEventListener('scroll', () => {
+    if (performance.now() < ldIgnoreScrollUntil || ldScrollTimer) return;
+    ldReportScroll();
+    ldScrollTimer = setTimeout(() => { ldScrollTimer = null; ldReportScroll(); }, 30);
+  });
+
+  // Layout changes (images loading, diagrams, resizing) move elements: re-measure, and keep
+  // following the editor if it was the one being scrolled.
+  new ResizeObserver(() => {
+    ldAnchors = null;
+    if (ldLeader === 'editor') ldScrollToLine(ldLastLine, ldLastAtBottom);
+  }).observe(document.documentElement);
 
   // Mermaid: rendered SVGs are cached by theme + source, so editing other
   // parts of the document doesn't re-render (or flicker) existing diagrams.
@@ -74,7 +152,7 @@
       if (code.parentElement.dataset.sourcepos) div.dataset.sourcepos = code.parentElement.dataset.sourcepos;
       code.parentElement.replaceWith(div);
     }
-    ldScrollTo(ldLastFraction); // diagrams change the page height
+    ldAnchors = null; // diagrams change the page height
   }
   ldDark.addEventListener('change', () => ldRender(ldLastHTML));
   function ldPost(message) {
