@@ -1,12 +1,21 @@
 import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
+    private var restoredDocuments = 0
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         Theme.applySavedAppearance()
+        NSApp.mainMenu = MainMenu.build()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.mainMenu = MainMenu.build()
+        restoredDocuments = Session.restoreOpenDocuments()
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        Session.saveOpenDocuments()
+        Session.isTerminating = true
+        return .terminateNow
     }
 
     // Not "setAppearance:": views, windows and NSApp already have a setter by that name, and the
@@ -22,7 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         return true
     }
 
-    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { true }
+    /// A blank document only when nothing was reopened.
+    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { restoredDocuments == 0 }
 }
 
 enum MainMenu {
@@ -83,9 +93,7 @@ enum MainMenu {
         menu.addItem(item("Open…", #selector(NSDocumentController.openDocument(_:)), "o"))
 
         let recent = NSMenu(title: "Open Recent")
-        recent.addItem(item("Clear Menu", #selector(NSDocumentController.clearRecentDocuments(_:))))
-        // Lets NSDocumentController manage this submenu's items.
-        recent.perform(NSSelectorFromString("_setMenuName:"), with: "NSRecentDocumentsMenu")
+        recent.delegate = RecentDocumentsMenu.shared
         menu.addItem(submenu(recent))
 
         menu.addItem(.separator())

@@ -25,6 +25,7 @@ MainActor.assumeIsolated {
     themeChecks(t)
     menuChecks(t)
     editStabilityChecks(t)
+    sessionChecks(t)
 
     print(t.failures == 0 ? "✔ \(t.count) checks passed" : "✘ \(t.failures) of \(t.count) checks failed")
     exit(t.failures == 0 ? 0 : 1)

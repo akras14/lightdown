@@ -231,6 +231,13 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 - [ ] ⌘F finds in the editor; ⌥⌘F finds and replaces
 - [ ] ⌘Z / ⇧⌘Z undo and redo every kind of edit above
 
+## 16. Reopening and recent files
+
+- [ ] File → Open Recent lists the files you've opened, newest first; picking one opens it
+- [ ] Two recent files with the same name show their folder to tell them apart
+- [ ] Open two documents, quit with ⌘Q and reopen Lightdown: both come back
+- [ ] Close every window, quit and reopen: you get one new blank document
+
 ## Results
 
 Anything that didn't work, or felt off:

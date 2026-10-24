@@ -32,7 +32,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 **Files**
 
-- **Standard Mac documents:** autosave, version history, tabs, recent files, find and replace.
+- **Standard Mac documents:** autosave, version history, tabs, Open Recent, find and replace. The documents you had open come back when you reopen Lightdown.
 - **Export** to HTML (⇧⌘E) or PDF, **Copy HTML** (⌥⌘C) for pasting into a blog or email, and **print**. PDFs and printouts are always at normal size and in light colours.
 - **Works offline.** Everything is bundled and nothing loads from the network.
 

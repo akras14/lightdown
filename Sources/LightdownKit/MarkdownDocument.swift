@@ -26,6 +26,12 @@ final class MarkdownDocument: NSDocument {
         let windowController = NSWindowController(window: window)
         windowController.shouldCascadeWindows = true
         addWindowController(windowController)
+        DispatchQueue.main.async { Session.saveOpenDocuments() }   // after the controller registers it
+    }
+
+    override func close() {
+        super.close()
+        Session.saveOpenDocuments()
     }
 
     override func data(ofType typeName: String) throws -> Data {
