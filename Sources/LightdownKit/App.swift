@@ -9,6 +9,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Diagnostic: print the final menus (after AppKit's additions) and quit, without opening windows.
+        if ProcessInfo.processInfo.environment["LIGHTDOWN_PRINT_MENUS"] != nil {
+            MainMenu.printMenus(NSApp.mainMenu!)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {   // the recents list loads asynchronously
+                print("Recent documents:", NSDocumentController.shared.recentDocumentURLs.map(\.lastPathComponent))
+                exit(0)
+            }
+            return
+        }
         restoredDocuments = Session.restoreOpenDocuments()
     }
 
@@ -36,6 +45,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 }
 
 enum MainMenu {
+    static func printMenus(_ menu: NSMenu, depth: Int = 0) {
+        for item in menu.items {
+            print(String(repeating: "  ", count: depth) + (item.isSeparatorItem ? "—" : item.title))
+            if let submenu = item.submenu { printMenus(submenu, depth: depth + 1) }
+        }
+    }
+
     static func build() -> NSMenu {
         let main = NSMenu()
         main.addItem(submenu(appMenu()))
@@ -92,9 +108,8 @@ enum MainMenu {
         menu.addItem(item("New", #selector(NSDocumentController.newDocument(_:)), "n"))
         menu.addItem(item("Open…", #selector(NSDocumentController.openDocument(_:)), "o"))
 
-        let recent = NSMenu(title: "Open Recent")
-        recent.delegate = RecentDocumentsMenu.shared
-        menu.addItem(submenu(recent))
+        // No Open Recent here: NSDocumentController inserts and maintains its own after "Open…"
+        // when the menu exists before launch finishes (see applicationWillFinishLaunching).
 
         menu.addItem(.separator())
         menu.addItem(item("Close", #selector(NSWindow.performClose(_:)), "w"))

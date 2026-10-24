@@ -53,6 +53,12 @@ swift run LightdownChecks
 
 They're a small executable instead of an XCTest target because XCTest and Swift Testing don't run with the Command Line Tools alone. They drive real text views and a real WebKit preview offscreen.
 
+To see the app's final menus, including the items macOS adds itself, without opening any windows:
+
+```sh
+LIGHTDOWN_PRINT_MENUS=1 build/Lightdown.app/Contents/MacOS/Lightdown
+```
+
 To check preview styles, render a document's preview to a PNG:
 
 ```sh
