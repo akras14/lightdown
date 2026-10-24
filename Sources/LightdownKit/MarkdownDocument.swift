@@ -40,7 +40,12 @@ final class MarkdownDocument: NSDocument {
     }
 
     override func data(ofType typeName: String) throws -> Data {
-        if let editor = editorController { text = editor.currentText }
+        if let editor = editorController {
+            // Typing coalesces into one undo step, and the document counts changes by undo steps:
+            // without a break, typing that continues a word after a save wouldn't mark it edited.
+            editor.textView.breakUndoCoalescing()
+            text = editor.currentText
+        }
         return Data(text.utf8)
     }
 

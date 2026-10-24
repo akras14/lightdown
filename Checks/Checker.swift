@@ -110,6 +110,8 @@ final class DocumentHarness {
         url = directory.appendingPathComponent(name)
         try! text.write(to: url, atomically: true, encoding: .utf8)
         document = try! MarkdownDocument(contentsOf: url, ofType: "net.daringfireball.markdown")
+        // Registered like a document opened in the app, so it hears about changes from other apps.
+        NSDocumentController.shared.addDocument(document)
         document.makeWindowControllers()
         editor = (document.windowControllers.first!.contentViewController as! DocumentViewController).editor
         editor.view.window?.setFrame(NSRect(x: 0, y: 0, width: 1000, height: 700), display: false)

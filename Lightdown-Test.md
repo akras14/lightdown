@@ -215,7 +215,14 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 
 - [ ] The new line appears at the end of this file within a second or two
 - [ ] Your cursor and scroll position don't jump
-- [ ] Type something here (don't wait for it to save), then run the command again: Lightdown asks whether to reload or keep your version
+- [ ] Run this delayed version, switch back to Lightdown and start typing right away:
+
+  ```sh
+  sleep 5; echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
+  ```
+
+  The line lands while your typing is still unsaved, so Lightdown asks whether to reload or keep your version
+- [ ] **Keep My Version** keeps your typing and saves it over the change; **Reload from Disk** shows the new line instead
 
 ## 14. Export, copy and print
 

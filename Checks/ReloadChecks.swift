@@ -40,4 +40,87 @@ func reloadChecks(_ t: Checker) {
         doc.reloadIfChangedOnDisk()
         t.expect(view.string, "local", "no reload without a newer file")
     }
+
+    // The real path: keystrokes, saves, and another process changing the file (like `echo >>`).
+    @MainActor func session(_ text: String, _ body: (DocumentHarness, NSWindow) -> Void) {
+        let h = DocumentHarness(text)
+        defer { h.close() }
+        let window = h.editor.view.window!
+        window.makeKeyAndOrderFront(nil)
+        window.makeFirstResponder(h.editor.textView)
+        h.editor.textView.setSelectedRange(NSRange(location: (text as NSString).length, length: 0))
+        body(h, window)
+        if let sheet = window.attachedSheet { window.endSheet(sheet, returnCode: .alertSecondButtonReturn) }
+        window.orderOut(nil)
+    }
+    @MainActor func save(_ h: DocumentHarness) -> Bool {
+        var done = false
+        h.document.autosave(withImplicitCancellability: false) { _ in done = true }
+        return waitUntil { done } && !h.document.isDocumentEdited
+    }
+    @MainActor func shell(_ command: String, in h: DocumentHarness) {
+        // A different modification time even within the same second as our own save.
+        Thread.sleep(forTimeInterval: 1.1)
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/bin/sh")
+        p.arguments = ["-c", command]
+        p.currentDirectoryURL = h.directory
+        try! p.run(); p.waitUntilExit()
+    }
+    @MainActor func disk(_ h: DocumentHarness) -> String { (try? String(contentsOf: h.url, encoding: .utf8)) ?? "" }
+    @MainActor func alertButton(_ title: String, in window: NSWindow) -> NSButton? {
+        func find(_ v: NSView) -> NSButton? {
+            if let b = v as? NSButton, b.title == title { return b }
+            return v.subviews.lazy.compactMap(find).first
+        }
+        return window.attachedSheet?.contentView.flatMap(find)
+    }
+
+    // Regression: typing that continued a word right after a save wasn't counted as a change, so a
+    // reload from disk silently dropped it (and quitting wouldn't save it).
+    t.group("typing right after a save is unsaved") {
+        session("# Notes\n") { h, window in
+            type("abc", in: window)
+            t.expect(save(h), true, "saved")
+            type("yy", in: window)
+            t.expect(h.document.isDocumentEdited, true, "edited after typing on")
+            t.expect(save(h), true, "saved again")
+            t.expect(disk(h), "# Notes\nabcyy", "both saves reach the disk")
+        }
+    }
+
+    t.group("change from another app") {
+        // No unsaved edits: reload quietly.
+        session("# Notes\n") { h, window in
+            shell("echo '- added' >> note.md", in: h)
+            t.expect(waitUntil { h.text == "# Notes\n- added\n" }, true, "reloaded (got \(h.text.debugDescription))")
+            t.expect(window.attachedSheet == nil, true, "without asking")
+        }
+        // Unsaved edits: ask, and keep them until the user chooses.
+        session("# Notes\n") { h, window in
+            type("mine", in: window)
+            shell("echo '- added' >> note.md", in: h)
+            t.expect(waitUntil { alertButton("Keep My Version", in: window) != nil }, true, "asks")
+            t.expect(h.text, "# Notes\nmine", "your edits stay while it asks")
+            alertButton("Keep My Version", in: window)?.performClick(nil)
+            t.expect(waitUntil { disk(h) == "# Notes\nmine" }, true, "keep: your version is saved (disk \(disk(h).debugDescription))")
+        }
+        session("# Notes\n") { h, window in
+            type("mine", in: window)
+            shell("echo '- added' >> note.md", in: h)
+            t.expect(waitUntil { alertButton("Reload from Disk", in: window) != nil }, true, "asks")
+            alertButton("Reload from Disk", in: window)?.performClick(nil)
+            t.expect(waitUntil { h.text == "# Notes\n- added\n" }, true, "reload: shows the disk version")
+            t.expect(h.document.isDocumentEdited, false, "reload: nothing unsaved")
+        }
+        // Typing on right after a save, then a change arrives: ask rather than drop the typing.
+        session("# Notes\n") { h, window in
+            type("abc", in: window)
+            t.expect(save(h), true, "saved")
+            type("yy", in: window)
+            shell("echo '- added' >> note.md", in: h)
+            t.expect(waitUntil(timeout: 4) { alertButton("Keep My Version", in: window) != nil }, true, "asks after typing on")
+            t.expect(h.text, "# Notes\nabcyy", "typing kept (got \(h.text.debugDescription))")
+        }
+    }
 }
