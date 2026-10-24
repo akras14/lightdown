@@ -2,3 +2,6 @@
 build/
 .swiftpm/
 .DS_Store
+# Images pasted or dropped while going through Lightdown-Test.md
+images/*
+!images/sample.png

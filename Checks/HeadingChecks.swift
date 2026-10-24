@@ -35,4 +35,17 @@ func headingChecks(_ t: Checker) {
         let html = MarkdownDocument.standaloneHTML(title: "x", body: "<h2>A B</h2>")
         t.expect(html.contains("ldAddHeadingIds(document.body)"), true, "exported HTML adds ids too")
     }
+
+    t.group("Lightdown-Test.md") {
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Lightdown-Test.md")
+        let h = DocumentHarness((try? String(contentsOf: url, encoding: .utf8)) ?? "")
+        defer { h.close() }
+        t.expect(h.waitForPreview(), true, "renders")
+        let broken = evaluate("""
+            [...document.querySelectorAll('a[href^="#"]')].map(a => a.getAttribute('href'))
+              .filter(h => !document.getElementById(decodeURIComponent(h.slice(1)))).join(' ')
+            """, in: h.webView) as? String
+        t.expect(broken, "", "every in-page link has a target")
+    }
 }

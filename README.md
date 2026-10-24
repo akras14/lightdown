@@ -2,6 +2,8 @@
 
 A minimal, native Markdown editor for macOS: an editor on the left and a live preview on the right. It started as a lean replacement for MacDown 3000, mainly to add zoom in and out.
 
+**[Lightdown-Test.md](Lightdown-Test.md)** shows everything Lightdown supports as a hands-on checklist. Open it in Lightdown and try each feature on the practice text.
+
 ## Features
 
 **Editing**
