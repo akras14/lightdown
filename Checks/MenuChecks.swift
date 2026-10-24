@@ -33,6 +33,25 @@ func menuChecks(_ t: Checker) {
         t.expect(checked > 10, true, "checked our menu actions (\(checked))")
     }
 
+    t.group("menu shortcuts") {
+        var seen: [String: String] = [:]
+        @MainActor func collect(_ m: NSMenu) {
+            for i in m.items {
+                if let s = i.submenu { collect(s) }
+                guard !i.keyEquivalent.isEmpty else { continue }
+                let mods = i.keyEquivalentModifierMask.intersection([.command, .option, .control, .shift])
+                // An uppercase key equivalent implies Shift.
+                let key = "\(mods.rawValue)-\(i.keyEquivalent.lowercased())-\(i.keyEquivalent != i.keyEquivalent.lowercased())"
+                t.expect(seen[key], nil, "\(i.title) shares its shortcut with")
+                seen[key] = i.title
+            }
+        }
+        collect(MainMenu.build())
+        let outline = MainMenu.build().items.lazy.compactMap { $0.submenu?.item(withTitle: "Show Outline") }.first
+        t.expect(outline?.keyEquivalent, "o", "outline toggles with ⌥⌘O")
+        t.expect(outline?.keyEquivalentModifierMask, [.command, .option])
+    }
+
     t.group("appearance through the menu") {
         let saved = Theme.appearance
         defer { Theme.appearance = saved }

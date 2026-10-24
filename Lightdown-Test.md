@@ -2,7 +2,7 @@
 
 Every feature, with a checkbox to tick as you go. **Click a checkbox in the preview** to tick it. That's one of the tests too.
 
-Open the outline with **⌃⌘S** to jump between sections.
+Open the outline with **⌥⌘O** to jump between sections.
 
 Testing edits this file and adds images next to it. Afterwards, `git checkout Lightdown-Test.md` resets the file; pasted images are git-ignored.
 
@@ -23,11 +23,11 @@ Testing edits this file and adds images next to it. Afterwards, `git checkout Li
 
 ## 3. Outline sidebar
 
-- [ ] ⌃⌘S shows the outline; it lists every heading, indented by level
+- [ ] ⌥⌘O shows the outline; it lists every heading, indented by level
 - [ ] Clicking a heading jumps there, and the preview follows
 - [ ] Scrolling highlights the current section in the outline
 - [ ] Add a heading below (type `## New section` at the end of this list) and watch it appear
-- [ ] ⌃⌘S hides it again; reopen the app and it remembers
+- [ ] ⌥⌘O hides it again; reopen the app and it remembers
 
 ## 4. Formatting shortcuts
 
@@ -164,7 +164,7 @@ print(Greeting(name: "Lightdown").message())
 | Feature        | Shortcut | Works? |
 |----------------|:--------:|-------:|
 | Bold           |    ⌘B    |      ✓ |
-| Outline        |   ⌃⌘S    |      ✓ |
+| Outline        |   ⌥⌘O    |      ✓ |
 | Export PDF     |    —     |      ✓ |
 
 > A blockquote, with ~~strikethrough~~, `inline code`, an autolink https://github.com and a [regular link](https://example.com).
