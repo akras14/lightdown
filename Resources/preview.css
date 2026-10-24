@@ -26,18 +26,25 @@ p, ul, ol, blockquote, pre, table, dl { margin: 0 0 1em; }
 a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
 ul, ol { padding-left: 2em; } li + li { margin-top: .25em; }
 li > ul, li > ol { margin: .25em 0 0; } /* nested lists: no extra gap after them */
-/* Task lists: no bullets, checkbox flush with the text column, tight rows. */
-ul:has(> li > input[type=checkbox]), ul:has(> li > p:first-child > input[type=checkbox]) { padding-left: 0; }
-li ul:has(> li > input[type=checkbox]) { padding-left: 1.5em; }
-li:has(> input[type=checkbox]), li:has(> p:first-child > input[type=checkbox]) { list-style: none; }
-li:has(> input[type=checkbox]) { line-height: 1.5; }
+/* Task lists: no bullets, checkbox flush with the text column, and a hanging indent so wrapped
+   lines, later paragraphs and nested items line up with the item's text, not the checkbox. */
+ul:has(> li > input[type=checkbox]) { padding-left: 0; }
+li:has(> input[type=checkbox]) { list-style: none; padding-left: 1.3em; line-height: 1.5; }
+li:has(> input[type=checkbox]) > ul:has(> li > input[type=checkbox]) { padding-left: 0; }
 li:has(> input[type=checkbox]) + li, li:has(> input[type=checkbox]) > ul { margin-top: .15em; }
-li > input[type=checkbox], li > p:first-child > input[type=checkbox] {
+/* Loose task lists (blank lines between items) wrap the text in <p>: keep the first one on the
+   checkbox's line. */
+li > input[type=checkbox] + p { display: inline; }
+li > input[type=checkbox] + p + * { margin-top: .5em; }
+li:has(> input[type=checkbox] + p) + li { margin-top: .6em; }
+li > input[type=checkbox] {
   -webkit-appearance: none; appearance: none;
-  width: .9em; height: .9em; margin: 0 .2em 0 0; vertical-align: middle; position: relative; top: -.08em;
+  /* Form controls default to their own smaller font; inherit so these em sizes match the text. */
+  font-size: inherit; width: .76em; height: .76em; margin: 0 .3em 0 -1.3em;
+  vertical-align: middle; position: relative; top: -.08em;
   border: 1.5px solid var(--muted); border-radius: .22em; background: transparent; cursor: pointer;
 }
-li > input[type=checkbox]:checked, li > p:first-child > input[type=checkbox]:checked {
+li > input[type=checkbox]:checked {
   border-color: var(--link);
   background: var(--link) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
 }
