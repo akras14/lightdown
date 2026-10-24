@@ -376,6 +376,21 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     // MARK: NSWindowDelegate
 
+    /// An empty Untitled document goes away once you move to another document (another tab,
+    /// or a file you just opened), so it doesn't linger next to real ones.
+    func windowDidResignMain(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            self?.closeIfEmptyUntitled(newMainWindow: NSApp.mainWindow)
+        }
+    }
+
+    func closeIfEmptyUntitled(newMainWindow: NSWindow?) {
+        guard let document, document.isEmptyUntitled,
+              let newMainWindow, newMainWindow !== view.window,
+              newMainWindow.windowController?.document is MarkdownDocument else { return }
+        document.close()
+    }
+
     func windowWillReturnUndoManager(_ window: NSWindow) -> UndoManager? {
         document?.undoManager
     }

@@ -22,13 +22,9 @@ enum Session {
             .map { URL(fileURLWithPath: $0) }
     }
 
-    /// Reopens the saved documents. Returns how many it's reopening.
-    @discardableResult
-    static func restoreOpenDocuments() -> Int {
-        let urls = documentsToRestore()
+    static func reopen(_ urls: [URL]) {
         for url in urls {
             NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { _, _, _ in }
         }
-        return urls.count
     }
 }

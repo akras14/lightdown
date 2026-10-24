@@ -237,6 +237,8 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 - [ ] Two recent files with the same name show their folder to tell them apart
 - [ ] Open two documents, quit with ⌘Q and reopen Lightdown: both come back
 - [ ] Close every window, quit and reopen: you get one new blank document
+- [ ] Reopening never adds an extra Untitled next to the documents that come back
+- [ ] An empty Untitled document closes itself when you switch to another tab or open a file; one you've typed in stays
 
 ## Results
 

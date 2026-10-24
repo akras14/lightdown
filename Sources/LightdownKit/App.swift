@@ -1,11 +1,14 @@
 import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
-    private var restoredDocuments = 0
+    /// Decided before launch finishes: AppKit asks whether to open a blank document before
+    /// applicationDidFinishLaunching runs, so the answer can't wait for the reopening itself.
+    private(set) var documentsToRestore: [URL] = []
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         Theme.applySavedAppearance()
         NSApp.mainMenu = MainMenu.build()
+        documentsToRestore = Session.documentsToRestore()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -18,7 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             }
             return
         }
-        restoredDocuments = Session.restoreOpenDocuments()
+        Session.reopen(documentsToRestore)
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -41,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
 
     /// A blank document only when nothing was reopened.
-    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { restoredDocuments == 0 }
+    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { documentsToRestore.isEmpty }
 }
 
 enum MainMenu {

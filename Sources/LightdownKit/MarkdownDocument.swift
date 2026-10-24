@@ -29,6 +29,11 @@ final class MarkdownDocument: NSDocument {
         DispatchQueue.main.async { Session.saveOpenDocuments() }   // after the controller registers it
     }
 
+    /// A blank Untitled document nobody has typed into: safe to close without asking.
+    var isEmptyUntitled: Bool {
+        fileURL == nil && currentText.isEmpty
+    }
+
     override func close() {
         super.close()
         Session.saveOpenDocuments()
