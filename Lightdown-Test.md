@@ -96,12 +96,16 @@ Water the plants
 - [ ] In the numbered list, moving keeps the numbers 1, 2, 3 in order
 - [ ] In this paragraph (not a list), ⇧⌘↑ still selects to the top of the document
 
+Practice list:
+
 - First
 - Second
 - Parent
   - Child A
   - Child B
 - Last
+
+Practice numbered list:
 
 1. Red
 2. Green
