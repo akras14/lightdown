@@ -39,22 +39,35 @@ final class EditorTextView: NSTextView {
     }
 }
 
+/// WKUserContentController retains its handlers; this keeps it from retaining the controller.
+final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    private weak var target: WKScriptMessageHandler?
+    init(_ target: WKScriptMessageHandler) { self.target = target }
+
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        target?.userContentController(controller, didReceive: message)
+    }
+}
+
 final class PreviewWebView: WKWebView {
     private var pinch = PinchZoom()
     override func magnify(with event: NSEvent) { pinch.handle(event) }
 }
 
-final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate, WKNavigationDelegate, NSWindowDelegate, NSMenuItemValidation {
+final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate, WKNavigationDelegate, WKScriptMessageHandler, NSWindowDelegate, NSMenuItemValidation {
     private weak var document: MarkdownDocument?
 
     private let highlighter = SyntaxHighlighter()
     private(set) var textView: EditorTextView!
     private var editorScrollView: NSScrollView!
-    private var webView: PreviewWebView!
+    private(set) var webView: PreviewWebView!
     private var editorItem: NSSplitViewItem!
     private var previewItem: NSSplitViewItem!
 
-    private var previewReady = false
+    /// The preview page; tests point this at the repo's Resources folder.
+    static var previewTemplateURL = Bundle.main.url(forResource: "preview", withExtension: "html")
+
+    private(set) var previewReady = false
     private var renderWorkItem: DispatchWorkItem?
 
     var currentText: String { textView.string }
@@ -136,11 +149,12 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     private func makePreviewPane() -> NSViewController {
         let config = WKWebViewConfiguration()
+        config.userContentController.add(WeakScriptMessageHandler(self), name: "lightdown")
         let wv = PreviewWebView(frame: .zero, configuration: config)
         wv.navigationDelegate = self
         wv.allowsMagnification = false
         wv.setValue(false, forKey: "drawsBackground")
-        if let template = Bundle.main.url(forResource: "preview", withExtension: "html") {
+        if let template = Self.previewTemplateURL {
             wv.loadFileURL(template, allowingReadAccessTo: URL(fileURLWithPath: "/"))
         }
         webView = wv
@@ -170,7 +184,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     private func renderPreview() {
         guard previewReady else { return }
-        let html = MarkdownRenderer.html(from: textView.string)
+        let html = MarkdownRenderer.html(from: textView.string, sourcePositions: true)
         let base = (document?.fileURL?.deletingLastPathComponent() ?? FileManager.default.homeDirectoryForCurrentUser).absoluteString
         let js = "ldSetBase(\(jsString(base))); ldRender(\(jsString(html))); ldScrollTo(\(scrollFraction()));"
         webView.evaluateJavaScript(js)
@@ -250,6 +264,18 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         let op = webView.printOperation(with: printInfo)
         op.view?.frame = NSRect(origin: .zero, size: printInfo.paperSize)
         return op
+    }
+
+    // MARK: Messages from the preview
+
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard let body = message.body as? [String: Any], let type = body["type"] as? String else { return }
+        switch type {
+        case "toggleTask":
+            if let line = body["line"] as? Int { textView.toggleTaskCheckbox(line: line - 1) }
+        default:
+            break
+        }
     }
 
     // MARK: WKNavigationDelegate

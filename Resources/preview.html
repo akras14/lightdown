@@ -23,6 +23,7 @@
     const c = document.getElementById('content');
     c.innerHTML = html;
     c.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
+    c.querySelectorAll('li input[type=checkbox]').forEach(el => { el.disabled = false; });
     ldRenderMermaid(c, gen);
   }
   function ldScrollTo(fraction) {
@@ -68,11 +69,25 @@
       }
       if (gen !== ldGeneration) return; // a newer render replaced the DOM
       div.innerHTML = svg;
+      if (code.parentElement.dataset.sourcepos) div.dataset.sourcepos = code.parentElement.dataset.sourcepos;
       code.parentElement.replaceWith(div);
     }
     ldScrollTo(ldLastFraction); // diagrams change the page height
   }
   ldDark.addEventListener('change', () => ldRender(ldLastHTML));
+  function ldPost(message) {
+    if (window.webkit && webkit.messageHandlers.lightdown) webkit.messageHandlers.lightdown.postMessage(message);
+  }
+
+  // Clicking a task checkbox edits the source; the re-render then shows the new state.
+  document.addEventListener('click', e => {
+    const box = e.target.closest('li input[type=checkbox]');
+    if (!box) return;
+    e.preventDefault();
+    const li = box.closest('li[data-sourcepos]');
+    if (li) ldPost({ type: 'toggleTask', line: parseInt(li.dataset.sourcepos, 10) });
+  });
+
   // In-page anchors (e.g. footnotes) would otherwise resolve against <base>.
   document.addEventListener('click', e => {
     const a = e.target.closest('a');

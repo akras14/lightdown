@@ -95,4 +95,16 @@ extension EditorTextView {
             setSelectedRange(NSRange(location: lineRange.location, length: (replacement as NSString).length - (trailingNewline ? 1 : 0)))
         }
     }
+
+    /// Checks or unchecks the task on `line` (0-based), e.g. when its checkbox is clicked in the preview.
+    func toggleTaskCheckbox(line: Int) {
+        editLines("Toggle To-Do") { lines in
+            guard line >= 0, line < lines.count else { return lines }
+            let item = TodoList.Line(lines[line])
+            guard item.state != .plain else { return lines }
+            var result = lines
+            result[line] = item.rendered(as: item.state == .checked ? .unchecked : .checked)
+            return result
+        }
+    }
 }

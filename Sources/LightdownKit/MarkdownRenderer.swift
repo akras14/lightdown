@@ -6,10 +6,13 @@ import cmark_gfm_extensions
 enum MarkdownRenderer {
     private static let extensionNames = ["table", "strikethrough", "autolink", "tasklist", "tagfilter"]
 
-    static func html(from markdown: String) -> String {
+    /// `sourcePositions` adds `data-sourcepos="line:col-line:col"` to block elements, which the
+    /// preview uses to map between editor lines and rendered content.
+    static func html(from markdown: String, sourcePositions: Bool = false) -> String {
         cmark_gfm_core_extensions_ensure_registered()
 
-        let options = CMARK_OPT_UNSAFE | CMARK_OPT_FOOTNOTES | CMARK_OPT_SMART
+        var options = CMARK_OPT_UNSAFE | CMARK_OPT_FOOTNOTES | CMARK_OPT_SMART
+        if sourcePositions { options |= CMARK_OPT_SOURCEPOS }
         guard let parser = cmark_parser_new(options) else { return "" }
         defer { cmark_parser_free(parser) }
 

@@ -20,16 +20,10 @@ func reloadChecks(_ t: Checker) {
     }
 
     t.group("reload from disk") {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let url = dir.appendingPathComponent("note.md")
-        try! "# Title\n\nfirst line\nsecond line\n".write(to: url, atomically: true, encoding: .utf8)
-
-        let doc = try! MarkdownDocument(contentsOf: url, ofType: "net.daringfireball.markdown")
-        doc.makeWindowControllers()
-        let editor = doc.windowControllers.first!.contentViewController as! EditorSplitViewController
-        let view = editor.textView!
+        let h = DocumentHarness("# Title\n\nfirst line\nsecond line\n")
+        defer { h.close() }
+        let doc = h.document, url = h.url
+        let view = h.editor.textView!
         t.expect(view.string, "# Title\n\nfirst line\nsecond line\n", "opened")
         view.setSelectedRange(NSRange(location: 25, length: 0)) // inside "second line"
 
@@ -45,6 +39,5 @@ func reloadChecks(_ t: Checker) {
         view.string = "local"
         doc.reloadIfChangedOnDisk()
         t.expect(view.string, "local", "no reload without a newer file")
-        doc.close()
     }
 }

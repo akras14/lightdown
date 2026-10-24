@@ -35,7 +35,7 @@ li:has(> input[type=checkbox]) + li, li:has(> input[type=checkbox]) > ul { margi
 li > input[type=checkbox], li > p:first-child > input[type=checkbox] {
   -webkit-appearance: none; appearance: none;
   width: .9em; height: .9em; margin: 0 .2em 0 0; vertical-align: middle; position: relative; top: -.08em;
-  border: 1.5px solid var(--muted); border-radius: .22em; background: transparent;
+  border: 1.5px solid var(--muted); border-radius: .22em; background: transparent; cursor: pointer;
 }
 li > input[type=checkbox]:checked, li > p:first-child > input[type=checkbox]:checked {
   border-color: var(--link);
