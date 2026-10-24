@@ -29,6 +29,19 @@ final class EditorTextView: NSTextView {
         if !shiftListItems(indent: false) { super.insertBacktab(sender) }
     }
 
+    override func paste(_ sender: Any?) {
+        if !insertImages(from: .general, at: selectedRange()) { super.paste(sender) }
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let index = characterIndexForInsertion(at: convert(sender.draggingLocation, from: nil))
+        if insertImages(from: sender.draggingPasteboard, at: NSRange(location: index, length: 0)) {
+            window?.makeFirstResponder(self)
+            return true
+        }
+        return super.performDragOperation(sender)
+    }
+
     // ⇧⌘↑/↓ move list items; elsewhere they keep selecting to the start/end of the document.
     @IBAction func moveItemUp(_ sender: Any?) {
         if !moveListItem(up: true) { moveToBeginningOfDocumentAndModifySelection(sender) }
