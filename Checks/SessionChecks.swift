@@ -56,7 +56,7 @@ func sessionChecks(_ t: Checker) {
             let doc = MarkdownDocument()
             doc.makeWindowControllers()
             NSDocumentController.shared.addDocument(doc)
-            return (doc, doc.windowControllers.first!.contentViewController as! EditorSplitViewController)
+            return (doc, (doc.windowControllers.first!.contentViewController as! DocumentViewController).editor)
         }
         let other = DocumentHarness("# A real document\n")
         defer { other.close() }

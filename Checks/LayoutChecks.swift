@@ -37,4 +37,33 @@ func layoutChecks(_ t: Checker) {
         split.layoutSubtreeIfNeeded()
         t.expect(abs(moveDivider(to: 700) - 700) < 2, true, "divider moves with the outline open")
     }
+
+    // The status bar runs along the bottom of the whole window, under every pane.
+    t.group("status bar spans the window") {
+        let h = DocumentHarness("one two three\n")
+        defer { h.close() }
+        let window = h.editor.view.window!
+        window.setFrame(NSRect(x: -5000, y: -5000, width: 1200, height: 760), display: true)
+        let label = h.editor.wordCountLabel
+
+        @MainActor func check(_ what: String) {
+            window.contentView!.layoutSubtreeIfNeeded()
+            let width = window.contentView!.bounds.width
+            let frame = label.convert(label.bounds, to: nil)
+            t.expect(abs(frame.minX - 12) < 4 && abs(frame.maxX - (width - 12)) < 4, true,
+                     "\(what): label spans \(Int(frame.minX))…\(Int(frame.maxX)) of \(Int(width))")
+            let split = h.editor.view.convert(h.editor.view.bounds, to: nil)
+            t.expect(split.minY >= frame.maxY, true, "\(what): panes sit above the bar")
+        }
+        h.editor.splitView.setPosition(600, ofDividerAt: 1)
+        check("both panes")
+        h.editor.toggleOutline(nil)
+        waitUntil(timeout: 0.5) { false }
+        check("outline open")
+        h.editor.toggleOutline(nil)
+        h.editor.togglePreview(nil)
+        waitUntil(timeout: 0.5) { false }
+        check("preview hidden")
+        h.editor.togglePreview(nil)
+    }
 }

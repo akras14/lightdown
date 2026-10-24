@@ -59,6 +59,38 @@ final class EditorTextView: NSTextView {
     }
 }
 
+/// The window's content: the split view with the status bar below it.
+final class DocumentViewController: NSViewController {
+    let editor: EditorSplitViewController
+
+    init(document: MarkdownDocument) {
+        editor = EditorSplitViewController(document: document)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { fatalError("not used") }
+
+    override func loadView() {
+        addChild(editor)
+        let split = editor.view, bar = editor.statusBar
+        split.translatesAutoresizingMaskIntoConstraints = false
+        bar.translatesAutoresizingMaskIntoConstraints = false
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 1200, height: 800))
+        container.addSubview(split)
+        container.addSubview(bar)
+        NSLayoutConstraint.activate([
+            split.topAnchor.constraint(equalTo: container.topAnchor),
+            split.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            split.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            bar.topAnchor.constraint(equalTo: split.bottomAnchor),
+            bar.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            bar.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            bar.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+        ])
+        view = container
+    }
+}
+
 /// A view filled with the editor background, so the status bar matches the text area in both themes.
 final class BackgroundView: NSView {
     override var wantsUpdateLayer: Bool { true }
@@ -182,39 +214,8 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
         textView = tv
         editorScrollView = scrollView
-        // A slim status bar under the editor for the word count. (The window subtitle didn't
-        // redraw reliably while typing once documents were open as tabs.)
-        wordCountLabel.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
-        wordCountLabel.textColor = .secondaryLabelColor
-        wordCountLabel.alignment = .right
-        wordCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        // Never let the label's size pull on the pane: at the default priorities its hugging
-        // matched the split view's hold on the divider, pinning the editor to its minimum width.
-        wordCountLabel.setContentHuggingPriority(.init(1), for: .horizontal)
-        wordCountLabel.setContentCompressionResistancePriority(.init(1), for: .horizontal)
-        let separator = NSBox()
-        separator.boxType = .separator
-        separator.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-
-        let container = BackgroundView()
-        container.addSubview(scrollView)
-        container.addSubview(separator)
-        container.addSubview(wordCountLabel)
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: container.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            separator.topAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            separator.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            separator.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            wordCountLabel.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 3),
-            wordCountLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -4),
-            wordCountLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
-            wordCountLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
-        ])
         let vc = NSViewController()
-        vc.view = container
+        vc.view = scrollView
         return vc
     }
 
@@ -275,6 +276,33 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     private var documentWordCount = 0
     private(set) var wordCountLabel = NSTextField(labelWithString: "")
+
+    /// A slim bar across the bottom of the window for the word count, spanning all panes so it
+    /// doesn't take part in the split layout. (The window subtitle didn't redraw reliably while
+    /// typing once documents were open as tabs.)
+    private(set) lazy var statusBar: NSView = {
+        wordCountLabel.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        wordCountLabel.textColor = .secondaryLabelColor
+        wordCountLabel.alignment = .right
+        wordCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        let separator = NSBox()
+        separator.boxType = .separator
+        separator.translatesAutoresizingMaskIntoConstraints = false
+
+        let bar = BackgroundView()
+        bar.addSubview(separator)
+        bar.addSubview(wordCountLabel)
+        NSLayoutConstraint.activate([
+            separator.topAnchor.constraint(equalTo: bar.topAnchor),
+            separator.leadingAnchor.constraint(equalTo: bar.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: bar.trailingAnchor),
+            wordCountLabel.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 3),
+            wordCountLabel.bottomAnchor.constraint(equalTo: bar.bottomAnchor, constant: -4),
+            wordCountLabel.leadingAnchor.constraint(equalTo: bar.leadingAnchor, constant: 12),
+            wordCountLabel.trailingAnchor.constraint(equalTo: bar.trailingAnchor, constant: -12),
+        ])
+        return bar
+    }()
 
     func textViewDidChangeSelection(_ notification: Notification) {
         updateWordCount()

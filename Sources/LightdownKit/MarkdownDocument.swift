@@ -5,7 +5,7 @@ final class MarkdownDocument: NSDocument {
     var text = ""
 
     private var editorController: EditorSplitViewController? {
-        windowControllers.first?.contentViewController as? EditorSplitViewController
+        (windowControllers.first?.contentViewController as? DocumentViewController)?.editor
     }
 
     override class var autosavesInPlace: Bool { true }
@@ -14,13 +14,13 @@ final class MarkdownDocument: NSDocument {
     var currentText: String { editorController?.currentText ?? text }
 
     override func makeWindowControllers() {
-        let controller = EditorSplitViewController(document: self)
-        let window = NSWindow(contentViewController: controller)
+        let content = DocumentViewController(document: self)
+        let window = NSWindow(contentViewController: content)
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
         window.setContentSize(NSSize(width: 1200, height: 800))
         window.minSize = NSSize(width: 480, height: 300)
         window.tabbingMode = .preferred
-        window.delegate = controller
+        window.delegate = content.editor
         window.center()
 
         let windowController = NSWindowController(window: window)
