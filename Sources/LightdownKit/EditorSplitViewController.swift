@@ -132,7 +132,9 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         // TextKit 1: scroll sync needs exact line geometry from NSLayoutManager.
         let tv = EditorTextView(usingTextLayoutManager: false)
         tv.frame = NSRect(origin: .zero, size: scrollView.contentSize)
-        tv.layoutManager?.allowsNonContiguousLayout = true
+        // Contiguous layout: estimated heights above the viewport made scroll positions shift after every
+        // edit (the highlighter re-styles the whole document), which scroll sync then amplified.
+        tv.layoutManager?.allowsNonContiguousLayout = false
         tv.minSize = .zero
         tv.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
         tv.isVerticallyResizable = true

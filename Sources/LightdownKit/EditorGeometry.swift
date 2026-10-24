@@ -81,6 +81,13 @@ extension EditorTextView {
             let rect = self.rect(ofLine: index)
             y = rect.minY + CGFloat(line - Double(index + 1)) * rect.height + inset
         }
+        // Layout is lazy, so the text view may not have grown to the target yet: lay out the
+        // destination screenful and resize before clamping to the scrollable height.
+        if let layoutManager, let textContainer, y + clip.bounds.height > documentView.frame.height {
+            layoutManager.ensureLayout(forBoundingRect: NSRect(x: 0, y: y, width: textContainer.size.width,
+                                                               height: clip.bounds.height), in: textContainer)
+            sizeToFit()
+        }
         y = min(max(0, y), max(0, documentView.frame.height - clip.bounds.height))
         clip.scroll(to: NSPoint(x: clip.bounds.minX, y: y))
         enclosingScrollView?.reflectScrolledClipView(clip)
