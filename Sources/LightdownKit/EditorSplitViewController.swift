@@ -188,6 +188,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         wordCountLabel.textColor = .secondaryLabelColor
         wordCountLabel.alignment = .right
         wordCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        // Never let the label's size pull on the pane: at the default priorities its hugging
+        // matched the split view's hold on the divider, pinning the editor to its minimum width.
+        wordCountLabel.setContentHuggingPriority(.init(1), for: .horizontal)
+        wordCountLabel.setContentCompressionResistancePriority(.init(1), for: .horizontal)
         let separator = NSBox()
         separator.boxType = .separator
         separator.translatesAutoresizingMaskIntoConstraints = false
