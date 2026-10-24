@@ -207,6 +207,8 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     }
 
     private func renderPreview() {
+        documentWordCount = WordCount.count(in: textView.string)
+        updateWordCountSubtitle()
         outline.update(OutlineParser.headings(in: textView.string))
         outline.highlightSection(atLine: textView.topVisibleLine())
         guard previewReady else { return }
@@ -220,6 +222,21 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         let data = try! JSONSerialization.data(withJSONObject: [s], options: [.fragmentsAllowed])
         let array = String(decoding: data, as: UTF8.self)
         return String(array.dropFirst().dropLast())
+    }
+
+    // MARK: Word count
+
+    private var documentWordCount = 0
+
+    func textViewDidChangeSelection(_ notification: Notification) {
+        updateWordCountSubtitle()
+    }
+
+    private func updateWordCountSubtitle() {
+        let selection = textView.selectedRange()
+        view.window?.subtitle = selection.length > 0
+            ? WordCount.label(WordCount.count(in: (textView.string as NSString).substring(with: selection)), of: documentWordCount)
+            : WordCount.label(documentWordCount)
     }
 
     // MARK: Scroll sync

@@ -21,6 +21,7 @@ MainActor.assumeIsolated {
     headingChecks(t)
     scrollSyncChecks(t)
     outlineChecks(t)
+    wordCountChecks(t)
 
     print(t.failures == 0 ? "✔ \(t.count) checks passed" : "✘ \(t.failures) of \(t.count) checks failed")
     exit(t.failures == 0 ? 0 : 1)
