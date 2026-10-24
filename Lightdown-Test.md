@@ -236,6 +236,8 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 
 - [ ] ⌥⌘P hides and shows the preview
 - [ ] ⌥⌘E hides and shows the editor
+- [ ] Drag the divider off-center, then press ⌥⌘0 (or double-click the divider): editor and preview split 50/50
+- [ ] Open and close the outline (⌥⌘O) a few times: the editor and preview keep their widths
 - [ ] ⌘F finds in the editor; ⌥⌘F finds and replaces
 - [ ] ⌘Z / ⇧⌘Z undo and redo every kind of edit above
 

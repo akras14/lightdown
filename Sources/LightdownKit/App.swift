@@ -191,6 +191,7 @@ enum MainMenu {
         menu.addItem(item("Show Outline", #selector(EditorSplitViewController.toggleOutline(_:)), "o", [.command, .option]))
         menu.addItem(item("Hide Preview", #selector(EditorSplitViewController.togglePreview(_:)), "p", [.command, .option]))
         menu.addItem(item("Hide Editor", #selector(EditorSplitViewController.toggleEditor(_:)), "e", [.command, .option]))
+        menu.addItem(item("Split Evenly", #selector(EditorSplitViewController.splitEvenly(_:)), "0", [.command, .option]))
         menu.addItem(.separator())
         let appearance = NSMenu(title: "Appearance")
         for option in Theme.Appearance.allCases {

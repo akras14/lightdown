@@ -140,6 +140,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     private(set) var outline = OutlineViewController()
 
     private static let showOutlineKey = "showOutline"
+    private static let paneMinimum: CGFloat = 200
 
     private(set) var previewReady = false
     private var renderWorkItem: DispatchWorkItem?
@@ -161,9 +162,9 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         splitView.autosaveName = "LightdownSplitOutlineRight"
 
         editorItem = NSSplitViewItem(viewController: makeEditorPane())
-        editorItem.minimumThickness = 200
+        editorItem.minimumThickness = Self.paneMinimum
         previewItem = NSSplitViewItem(viewController: makePreviewPane())
-        previewItem.minimumThickness = 200
+        previewItem.minimumThickness = Self.paneMinimum
         previewItem.canCollapse = true
         editorItem.canCollapse = true
         addSplitViewItem(editorItem)
@@ -377,7 +378,20 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     // MARK: Layout toggles
 
     @IBAction func toggleOutline(_ sender: Any?) {
-        outlineItem.animator().isCollapsed.toggle()
+        // Opening the outline takes its room from the preview; closing it should give that room back
+        // to the preview alone, so pin the editor's width meanwhile. Otherwise the freed width was
+        // shared between both panes, and every open and close moved some of the preview to the editor.
+        let closing = !outlineItem.isCollapsed
+        let pinned = closing && !editorItem.isCollapsed && !previewItem.isCollapsed
+            ? splitView.arrangedSubviews[0].frame.width : nil
+        if let pinned { editorItem.minimumThickness = pinned; editorItem.maximumThickness = pinned }
+        NSAnimationContext.runAnimationGroup({ _ in
+            outlineItem.animator().isCollapsed.toggle()
+        }, completionHandler: { [weak self] in
+            guard let self, pinned != nil else { return }
+            self.editorItem.minimumThickness = Self.paneMinimum
+            self.editorItem.maximumThickness = NSSplitViewItem.unspecifiedDimension
+        })
         UserDefaults.standard.set(!outlineItem.isCollapsed, forKey: Self.showOutlineKey)
         if !outlineItem.isCollapsed { outline.highlightSection(atLine: textView.topVisibleLine()) }
     }
@@ -389,6 +403,23 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         textView.setSelectedRange(NSRange(location: range.location, length: 0))
         textView.scrollToLine(Double(heading.line))
         view.window?.makeFirstResponder(textView)
+    }
+
+    /// Gives the editor and preview the same width (⌥⌘0, or double-click the divider between them),
+    /// showing whichever was hidden.
+    @IBAction func splitEvenly(_ sender: Any?) {
+        editorItem.isCollapsed = false
+        previewItem.isCollapsed = false
+        splitView.layoutSubtreeIfNeeded()
+        // The panes' views sit in wrapper views; the split view's arranged subviews have the real frames.
+        let editor = splitView.arrangedSubviews[0].frame, preview = splitView.arrangedSubviews[1].frame
+        splitView.setPosition(editor.minX + (preview.maxX - editor.minX - splitView.dividerThickness) / 2, ofDividerAt: 0)
+    }
+
+    override func splitView(_ splitView: NSSplitView, shouldCollapseSubview subview: NSView,
+                            forDoubleClickOnDividerAt dividerIndex: Int) -> Bool {
+        if dividerIndex == 0 { splitEvenly(nil); return false }
+        return super.splitView(splitView, shouldCollapseSubview: subview, forDoubleClickOnDividerAt: dividerIndex)
     }
 
     @IBAction func togglePreview(_ sender: Any?) {

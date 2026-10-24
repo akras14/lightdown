@@ -89,4 +89,66 @@ func layoutChecks(_ t: Checker) {
         t.expect(abs(frame(editor).width - editorBefore.width) < 2, true,
                  "opening it doesn't squeeze the editor (\(Int(editorBefore.width)) → \(Int(frame(editor).width)))")
     }
+
+    // Regression: opening and closing the outline left the preview narrower each time.
+    t.group("outline round trip keeps the panes") {
+        let h = DocumentHarness("# One\n")
+        defer { h.close() }
+        h.editor.view.window!.setFrame(NSRect(x: -5000, y: -5000, width: 1200, height: 760), display: true)
+        let split = h.editor.splitView
+        split.setPosition(500, ofDividerAt: 0)
+        split.layoutSubtreeIfNeeded()
+        let editor = h.editor.splitViewItems[0].viewController.view, preview = h.editor.splitViewItems[1].viewController.view
+        let before = (editor.frame.width, preview.frame.width)
+        for round in 1...3 {
+            h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
+            h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
+            split.layoutSubtreeIfNeeded()
+            t.expect(abs(editor.frame.width - before.0) < 2 && abs(preview.frame.width - before.1) < 2, true,
+                     "round \(round): editor \(Int(before.0)) → \(Int(editor.frame.width)), preview \(Int(before.1)) → \(Int(preview.frame.width))")
+        }
+        // With the preview hidden, closing the outline gives the editor its room back.
+        h.editor.togglePreview(nil); waitUntil(timeout: 0.6) { false }
+        h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
+        h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
+        split.layoutSubtreeIfNeeded()
+        t.expect(abs(split.arrangedSubviews[0].frame.width - split.bounds.width) < 2, true,
+                 "preview hidden: editor fills the window (\(Int(split.arrangedSubviews[0].frame.width)))")
+        h.editor.togglePreview(nil); waitUntil(timeout: 0.6) { false }
+    }
+
+    t.group("split evenly") {
+        let h = DocumentHarness("# One\n")
+        defer { h.close() }
+        h.editor.view.window!.setFrame(NSRect(x: -5000, y: -5000, width: 1200, height: 760), display: true)
+        let split = h.editor.splitView
+        let editor = h.editor.splitViewItems[0].viewController.view, preview = h.editor.splitViewItems[1].viewController.view
+        @MainActor func even(_ what: String) {
+            waitUntil(timeout: 0.6) { false }
+            split.layoutSubtreeIfNeeded()
+            t.expect(abs(editor.frame.width - preview.frame.width) < 2, true,
+                     "\(what): \(Int(editor.frame.width)) / \(Int(preview.frame.width))")
+        }
+        split.setPosition(300, ofDividerAt: 0)
+        NSApp.sendAction(#selector(EditorSplitViewController.splitEvenly(_:)), to: h.editor, from: nil)
+        even("menu command")
+        split.setPosition(850, ofDividerAt: 0)
+        h.editor.toggleOutline(nil)
+        waitUntil(timeout: 0.6) { false }
+        h.editor.splitEvenly(nil)
+        even("with the outline open")
+        h.editor.toggleOutline(nil)
+        h.editor.togglePreview(nil)
+        waitUntil(timeout: 0.6) { false }
+        h.editor.splitEvenly(nil)
+        t.expect(h.editor.splitViewItems[1].isCollapsed, false, "brings a hidden preview back")
+        even("after hiding the preview")
+        // Double-clicking the divider does the same (AppKit asks before collapsing on double-click).
+        split.setPosition(300, ofDividerAt: 0)
+        _ = h.editor.splitView(split, shouldCollapseSubview: editor, forDoubleClickOnDividerAt: 0)
+        even("double-click on the divider")
+        let item = MainMenu.build().items.lazy.compactMap { $0.submenu?.item(withTitle: "Split Evenly") }.first
+        t.expect(item?.keyEquivalent, "0", "Split Evenly is ⌥⌘0")
+        t.expect(item?.keyEquivalentModifierMask, [.command, .option])
+    }
 }
