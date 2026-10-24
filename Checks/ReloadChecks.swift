@@ -90,6 +90,9 @@ func reloadChecks(_ t: Checker) {
     }
 
     t.group("change from another app") {
+        // Conflicts need unsaved edits when the change lands, so hold off the quick save.
+        MarkdownDocument.saveDelay = 60
+        defer { MarkdownDocument.saveDelay = 1 }
         // No unsaved edits: reload quietly.
         session("# Notes\n") { h, window in
             shell("echo '- added' >> note.md", in: h)
@@ -122,5 +125,40 @@ func reloadChecks(_ t: Checker) {
             t.expect(waitUntil(timeout: 4) { alertButton("Keep My Version", in: window) != nil }, true, "asks after typing on")
             t.expect(h.text, "# Notes\nabcyy", "typing kept (got \(h.text.debugDescription))")
         }
+    }
+
+    // Saving a moment after typing stops (rather than macOS's ~15 s) keeps the file current for
+    // other tools and makes conflicts rare.
+    t.group("quick save") {
+        session("# Notes\n") { h, window in
+            type("abc", in: window)
+            t.expect(disk(h), "# Notes\n", "not saved mid-typing")
+            t.expect(waitUntil(timeout: 3) { disk(h) == "# Notes\nabc" }, true, "saved soon after typing stops")
+            t.expect(h.document.isDocumentEdited, false, "clean after the save")
+
+            // Typing nonstop holds the save off until the pause.
+            let start = Date()
+            while Date().timeIntervalSince(start) < 2 { type("x", in: window) }
+            t.expect(disk(h), "# Notes\nabc", "no save while typing nonstop")
+            t.expect(waitUntil(timeout: 3) { disk(h).hasSuffix("x") }, true, "saved after the pause")
+        }
+        // Switching to another app (to run git or Claude Code) saves right away.
+        MarkdownDocument.saveDelay = 60
+        defer { MarkdownDocument.saveDelay = 1 }
+        session("# Notes\n") { h, window in
+            type("abc", in: window)
+            NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
+            t.expect(waitUntil(timeout: 1) { disk(h) == "# Notes\nabc" }, true, "saved on switching apps")
+        }
+        // Untitled documents are left to macOS (there's no file to save to).
+        MarkdownDocument.saveDelay = 1
+        let doc = MarkdownDocument()
+        doc.makeWindowControllers()
+        defer { doc.close() }
+        let content = doc.windowControllers.first!.contentViewController as! DocumentViewController
+        content.editor.textView.insertText("draft", replacementRange: NSRange(location: 0, length: 0))
+        waitUntil(timeout: 1.5) { false }
+        t.expect(doc.fileURL, nil, "untitled stays untitled")
+        t.expect(doc.isDocumentEdited, true, "still unsaved")
     }
 }

@@ -10,6 +10,28 @@ final class MarkdownDocument: NSDocument {
 
     override class var autosavesInPlace: Bool { true }
 
+    /// Save this long after typing stops. Left to itself, macOS autosaves about 15 s after the first
+    /// edit, so tools reading the file (git, Claude Code) saw stale text and their edits often
+    /// collided with unsaved ones. Raise it to make the reload-or-keep prompt easy to trigger by hand.
+    static var saveDelay: TimeInterval = 1
+    private var saveWorkItem: DispatchWorkItem?
+
+    /// Called on every edit: saves once typing pauses.
+    func scheduleSave() {
+        saveWorkItem?.cancel()
+        let item = DispatchWorkItem { [weak self] in self?.saveNow() }
+        saveWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.saveDelay, execute: item)
+    }
+
+    /// Saves pending edits to the file. Untitled documents are left to macOS, and nothing is written
+    /// while asking about a change from another app.
+    @objc func saveNow() {
+        saveWorkItem?.cancel()
+        guard fileURL != nil, isDocumentEdited, !isAskingAboutExternalChange else { return }
+        autosave(withImplicitCancellability: false) { _ in }
+    }
+
     /// The editor's text if a window is open, else the last loaded text.
     var currentText: String { editorController?.currentText ?? text }
 
@@ -26,6 +48,9 @@ final class MarkdownDocument: NSDocument {
         let windowController = NSWindowController(window: window)
         windowController.shouldCascadeWindows = true
         addWindowController(windowController)
+        // Switching apps, usually to run git or Claude Code on this file, saves right away.
+        NotificationCenter.default.addObserver(self, selector: #selector(saveNow),
+                                               name: NSApplication.didResignActiveNotification, object: nil)
         DispatchQueue.main.async { Session.saveOpenDocuments() }   // after the controller registers it
     }
 

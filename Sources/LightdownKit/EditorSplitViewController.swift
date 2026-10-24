@@ -267,6 +267,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     }
 
     func textDidChange(_ notification: Notification) {
+        document?.scheduleSave()
         renderWorkItem?.cancel()
         let item = DispatchWorkItem { [weak self] in self?.renderPreview() }
         renderWorkItem = item

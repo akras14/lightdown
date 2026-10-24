@@ -213,15 +213,16 @@ With this file open and saved (it autosaves), run this in Terminal from the repo
 echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 ```
 
+- [ ] Type a few words, wait a second, and the title bar no longer says "Edited": it saved
 - [ ] The new line appears at the end of this file within a second or two
 - [ ] Your cursor and scroll position don't jump
-- [ ] Run this delayed version, switch back to Lightdown and start typing right away:
+- [ ] Run this delayed version, switch back to Lightdown and hold down a letter key until the line lands:
 
   ```sh
   sleep 5; echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
   ```
 
-  The line lands while your typing is still unsaved, so Lightdown asks whether to reload or keep your version
+  Lightdown saves a second after you stop typing, so holding the key keeps your typing unsaved when the line lands, and Lightdown asks whether to reload or keep your version
 - [ ] **Keep My Version** keeps your typing and saves it over the change; **Reload from Disk** shows the new line instead
 
 ## 14. Export, copy and print
