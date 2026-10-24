@@ -17,7 +17,22 @@ final class EditorTextView: NSTextView {
     private var pinch = PinchZoom()
     override func magnify(with event: NSEvent) { pinch.handle(event) }
 
+    // Undo a word or line at a time, as in VS Code. By default NSTextView coalesces everything
+    // typed since the caret last moved into one undo step.
+    override func insertText(_ string: Any, replacementRange: NSRange) {
+        let text = (string as? String) ?? (string as? NSAttributedString)?.string ?? ""
+        let location = replacementRange.location == NSNotFound ? selectedRange().location : replacementRange.location
+        if !hasMarkedText(), let first = text.unicodeScalars.first, location > 0,
+           !CharacterSet.whitespacesAndNewlines.contains(first),
+           let before = UnicodeScalar((self.string as NSString).character(at: location - 1)),
+           CharacterSet.whitespacesAndNewlines.contains(before) {
+            breakUndoCoalescing()
+        }
+        super.insertText(string, replacementRange: replacementRange)
+    }
+
     override func insertNewline(_ sender: Any?) {
+        breakUndoCoalescing()
         if !continueList() { super.insertNewline(sender) }
     }
 
