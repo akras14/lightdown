@@ -76,6 +76,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     private(set) var webView: PreviewWebView!
     private var editorItem: NSSplitViewItem!
     private var previewItem: NSSplitViewItem!
+    private var outlineItem: NSSplitViewItem!
+    private(set) var outline = OutlineViewController()
+
+    private static let showOutlineKey = "showOutline"
 
     private(set) var previewReady = false
     private var renderWorkItem: DispatchWorkItem?
@@ -93,7 +97,14 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         super.viewDidLoad()
         splitView.isVertical = true
         splitView.dividerStyle = .thin
-        splitView.autosaveName = "LightdownSplit"
+        splitView.autosaveName = "LightdownSplitWithOutline"
+
+        outline.onSelect = { [weak self] heading in self?.jump(to: heading) }
+        outlineItem = NSSplitViewItem(sidebarWithViewController: outline)
+        outlineItem.minimumThickness = 150
+        outlineItem.maximumThickness = 400
+        outlineItem.isCollapsed = !UserDefaults.standard.bool(forKey: Self.showOutlineKey)
+        addSplitViewItem(outlineItem)
 
         editorItem = NSSplitViewItem(viewController: makeEditorPane())
         editorItem.minimumThickness = 200
@@ -196,6 +207,8 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     }
 
     private func renderPreview() {
+        outline.update(OutlineParser.headings(in: textView.string))
+        outline.highlightSection(atLine: textView.topVisibleLine())
         guard previewReady else { return }
         let html = MarkdownRenderer.html(from: textView.string, sourcePositions: true)
         let base = (document?.fileURL?.deletingLastPathComponent() ?? FileManager.default.homeDirectoryForCurrentUser).absoluteString
@@ -219,6 +232,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
     }
 
     @objc private func editorDidScroll() {
+        if !outlineItem.isCollapsed { outline.highlightSection(atLine: textView.topVisibleLine()) }
         guard previewReady, Date() >= followingPreviewUntil else { return }
         webView.evaluateJavaScript(syncScript())
     }
@@ -249,6 +263,21 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     // MARK: Layout toggles
 
+    @IBAction func toggleOutline(_ sender: Any?) {
+        outlineItem.animator().isCollapsed.toggle()
+        UserDefaults.standard.set(!outlineItem.isCollapsed, forKey: Self.showOutlineKey)
+        if !outlineItem.isCollapsed { outline.highlightSection(atLine: textView.topVisibleLine()) }
+    }
+
+    /// Scrolls the editor so the heading is at the top (the preview follows) and puts the caret on it.
+    func jump(to heading: Heading) {
+        guard heading.line - 1 < textView.lineIndex.count else { return }
+        let range = textView.lineIndex.range(ofLine: heading.line - 1)
+        textView.setSelectedRange(NSRange(location: range.location, length: 0))
+        textView.scrollToLine(Double(heading.line))
+        view.window?.makeFirstResponder(textView)
+    }
+
     @IBAction func togglePreview(_ sender: Any?) {
         if previewItem.isCollapsed == false && editorItem.isCollapsed { return }
         previewItem.animator().isCollapsed.toggle()
@@ -268,6 +297,9 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         case #selector(toggleEditor(_:)):
             menuItem.title = editorItem.isCollapsed ? "Show Editor" : "Hide Editor"
             return !previewItem.isCollapsed
+        case #selector(toggleOutline(_:)):
+            menuItem.title = outlineItem.isCollapsed ? "Show Outline" : "Hide Outline"
+            return true
         case #selector(resetZoom(_:)):
             return abs(Zoom.level - 1) > 0.001
         default:

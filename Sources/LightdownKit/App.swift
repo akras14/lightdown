@@ -145,6 +145,7 @@ enum MainMenu {
         menu.addItem(item("Zoom Out", #selector(EditorSplitViewController.zoomOut(_:)), "-"))
         menu.addItem(item("Actual Size", #selector(EditorSplitViewController.resetZoom(_:)), "0"))
         menu.addItem(.separator())
+        menu.addItem(item("Show Outline", #selector(EditorSplitViewController.toggleOutline(_:)), "s", [.command, .control]))
         menu.addItem(item("Hide Preview", #selector(EditorSplitViewController.togglePreview(_:)), "p", [.command, .option]))
         menu.addItem(item("Hide Editor", #selector(EditorSplitViewController.toggleEditor(_:)), "e", [.command, .option]))
         menu.addItem(.separator())
