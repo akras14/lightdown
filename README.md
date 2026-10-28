@@ -29,6 +29,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 - **GitHub-style Markdown** via [cmark-gfm](https://github.com/swiftlang/swift-cmark): tables, task lists, strikethrough, footnotes, autolinks.
 - **Heading links.** Headings get GitHub-style IDs, so `[see setup](#setup)` jumps to them.
 - **Mermaid diagrams** in fenced ` ```mermaid ` blocks, and syntax colouring for code.
+- **Zoom viewer.** Click a diagram or image (or right-click > Open in Viewer) to see it full-window. Zoom with the toolbar, a pinch or ⌘-scroll, drag to pan, and press Esc to close.
 - **Two-way scroll sync by source line.** Scrolling either pane keeps the same content at the top of the other, even past images and long code blocks.
 
 **Window**
@@ -100,6 +101,7 @@ To make Lightdown the default for `.md` files, open **Get Info** on any `.md` fi
 | `Checks/` | Test suite |
 | `Resources/preview.html`, `preview.css` | Preview page: rendering, scroll sync, checkbox clicks, styles |
 | `Resources/headings.js` | Heading IDs, shared by the preview and HTML export |
+| `Resources/viewer.js` | Zoom viewer for diagrams and images in the preview |
 | `scripts/make-icon.swift` | Builds `AppIcon.icns` from `icon-source.jpg` |
 
 To change the icon, replace `icon-source.jpg` and run `swift scripts/make-icon.swift icon-source.jpg`.

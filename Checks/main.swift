@@ -6,7 +6,7 @@ MainActor.assumeIsolated {
     let args = CommandLine.arguments
     if args.count >= 4, args[1] == "--snapshot" {
         snapshot(markdown: URL(fileURLWithPath: args[2]), to: URL(fileURLWithPath: args[3]),
-                 dark: args.contains("dark"))
+                 dark: args.contains("dark"), viewer: args.contains("viewer"))
         exit(0)
     }
     let t = Checker()
@@ -28,6 +28,7 @@ MainActor.assumeIsolated {
     sessionChecks(t)
     layoutChecks(t)
     undoChecks(t)
+    viewerChecks(t)
 
     print(t.failures == 0 ? "✔ \(t.count) checks passed" : "✘ \(t.failures) of \(t.count) checks failed")
     exit(t.failures == 0 ? 0 : 1)

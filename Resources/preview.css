@@ -64,3 +64,27 @@ mark { background: var(--mark); color: inherit; }
 .mermaid { margin: 0 0 1em; text-align: center; }
 .mermaid svg { max-width: 100%; height: auto; }
 .mermaid-error { margin: -0.5em 0 1em; font-size: .85em; color: #d1242f; white-space: pre-wrap; }
+/* Zoom viewer (viewer.js) */
+#content .mermaid svg, #content img { cursor: zoom-in; }
+#content a img { cursor: pointer; }
+html.ld-viewer-open { overflow: hidden; }
+#ld-viewer {
+  position: fixed; inset: 0; z-index: 10; overflow: hidden;
+  background: var(--bg); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+#ld-viewer[hidden] { display: none; }
+#ld-viewer.ld-dragging { cursor: grabbing; }
+.ld-viewer-item { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.ld-viewer-item > * { display: block; width: 100%; height: 100%; }
+.ld-viewer-toolbar {
+  position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 2px; padding: 3px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15); cursor: default;
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.ld-viewer-toolbar button {
+  min-width: 28px; height: 26px; padding: 0 6px; border: 0; border-radius: 5px;
+  background: none; color: var(--fg); font: inherit; cursor: pointer;
+}
+.ld-viewer-toolbar button:hover { background: var(--code-bg); }
+.ld-viewer-zoom { min-width: 44px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }

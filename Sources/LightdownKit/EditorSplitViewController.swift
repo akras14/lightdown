@@ -124,7 +124,36 @@ final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
 
 final class PreviewWebView: WKWebView {
     private var pinch = PinchZoom()
-    override func magnify(with event: NSEvent) { pinch.handle(event) }
+    /// Whether the zoom viewer (viewer.js) is showing, and whether the last right-click was on
+    /// something it can show. Both reported by the page.
+    var viewerOpen = false
+    var viewerTargetAvailable = false
+
+    /// Pinching zooms the viewer while it's open, and the whole preview otherwise.
+    override func magnify(with event: NSEvent) {
+        guard viewerOpen else { return pinch.handle(event) }
+        let p = convert(event.locationInWindow, from: nil)
+        zoomViewer(by: 1 + event.magnification, at: CGPoint(x: p.x, y: isFlipped ? p.y : bounds.height - p.y))
+    }
+
+    /// Zooms the viewer by `factor` around `point`, in view coordinates from the top left.
+    func zoomViewer(by factor: Double, at point: CGPoint) {
+        let zoom = pageZoom
+        evaluateJavaScript("ldViewerZoom(\(factor), \(point.x / zoom), \(point.y / zoom))")
+    }
+
+    override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
+        super.willOpenMenu(menu, with: event)
+        guard viewerTargetAvailable, !viewerOpen else { return }
+        let item = NSMenuItem(title: "Open in Viewer", action: #selector(openInViewer(_:)), keyEquivalent: "")
+        item.target = self
+        menu.insertItem(item, at: 0)
+        if menu.items.count > 1 { menu.insertItem(.separator(), at: 1) }
+    }
+
+    @objc func openInViewer(_ sender: Any?) {
+        evaluateJavaScript("ldViewerOpenContextTarget()")
+    }
 }
 
 final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate, WKNavigationDelegate, WKScriptMessageHandler, NSWindowDelegate, NSMenuItemValidation {
@@ -480,6 +509,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
             }
         case "toggleTask":
             if let line = body["line"] as? Int { textView.toggleTaskCheckbox(line: line - 1) }
+        case "viewer":
+            webView.viewerOpen = body["open"] as? Bool ?? false
+        case "viewerTarget":
+            webView.viewerTargetAvailable = body["available"] as? Bool ?? false
         default:
             break
         }
