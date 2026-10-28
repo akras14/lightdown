@@ -29,6 +29,7 @@ MainActor.assumeIsolated {
     layoutChecks(t)
     undoChecks(t)
     viewerChecks(t)
+    moveChecks(t)
 
     print(t.failures == 0 ? "✔ \(t.count) checks passed" : "✘ \(t.failures) of \(t.count) checks failed")
     exit(t.failures == 0 ? 0 : 1)

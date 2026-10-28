@@ -152,6 +152,48 @@ final class MarkdownDocument: NSDocument {
         }
     }
 
+    // MARK: Move To…
+
+    /// On macOS 26 the system Move To… popover fails to start in apps that aren't sandboxed
+    /// ("Cannot display the move panel", ViewBridge error 14), so pick the new place with a save
+    /// panel, like Export does, and move the file from there.
+    override func move(_ sender: Any?) {
+        guard let current = fileURL, let window = windowControllers.first?.window else {
+            return saveAs(sender)   // never saved: choosing a place is saving
+        }
+        let panel = NSSavePanel()
+        panel.title = "Move To"
+        panel.prompt = "Move"
+        panel.nameFieldStringValue = current.lastPathComponent
+        panel.directoryURL = current.deletingLastPathComponent()
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+            self?.moveFile(to: url)
+        }
+    }
+
+    /// Moves the file to `url`, replacing a file already there (the save panel has asked by then).
+    func moveFile(to url: URL, completion: @escaping () -> Void = {}) {
+        guard let current = fileURL, url.standardizedFileURL != current.standardizedFileURL else { return completion() }
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            presentErrorSheet(error)
+            return completion()
+        }
+        move(to: url) { [weak self] error in
+            if let error { self?.presentErrorSheet(error) }
+            completion()
+        }
+    }
+
+    /// Moves and renames (including from the title bar) change the path to reopen next launch.
+    override var fileURL: URL? {
+        didSet { if oldValue != nil, oldValue != fileURL { Session.saveOpenDocuments() } }
+    }
+
     /// Shows an exported file in Finder. Replaceable so the checks don't open Finder windows.
     static var revealInFinder: (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
 
