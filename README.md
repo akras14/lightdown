@@ -111,7 +111,7 @@ To change the icon, replace `icon-source.jpg` and run `swift scripts/make-icon.s
 These libraries are bundled in `Resources/`:
 
 - [highlight.js](https://highlightjs.org) 11.9.0: BSD 3-Clause
-- [Mermaid](https://mermaid.js.org) 11.12.0: MIT
+- [Mermaid](https://mermaid.js.org) 12.2.0: MIT (includes [elkjs](https://github.com/kieler/elkjs): EPL-2.0)
 
 This one is fetched by Swift Package Manager when you build:
 

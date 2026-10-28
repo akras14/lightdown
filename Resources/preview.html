@@ -113,6 +113,9 @@
     if (ldLeader === 'editor') ldScrollToLine(ldLastLine, ldLastAtBottom);
   }).observe(document.documentElement);
 
+  // Same flowchart spacing as GitHub, which also uses Mermaid 12's default ELK layout.
+  const ldMermaidFlowchart = { diagramPadding: 48 };
+
   // Mermaid: rendered SVGs are cached by theme + source, so editing other
   // parts of the document doesn't re-render (or flicker) existing diagrams.
   const ldDark = matchMedia('(prefers-color-scheme: dark)');
@@ -125,7 +128,7 @@
     if (!blocks.length) return;
     const theme = ldDark.matches ? 'dark' : 'default';
     if (theme !== ldMermaidTheme) {
-      mermaid.initialize({ startOnLoad: false, theme, securityLevel: 'strict' });
+      mermaid.initialize({ startOnLoad: false, theme, securityLevel: 'strict', flowchart: ldMermaidFlowchart });
       ldMermaidTheme = theme;
     }
     for (const code of blocks) {

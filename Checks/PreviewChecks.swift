@@ -78,4 +78,42 @@ func previewChecks(_ t: Checker) {
         t.expect(waitUntil { h.text.contains("- [ ] open") }, true, "undo reverts the source (text: \(h.text.debugDescription))")
         t.expect(waitUntil { states() == "--" }, true, "preview follows the undo (got \(states() ?? "nil"))")
     }
+
+    // Issue #1: the repro from GitHub, which renders it with Mermaid 12 (ELK layout).
+    t.group("mermaid renders like GitHub") {
+        let h = DocumentHarness("""
+        ```mermaid
+        flowchart LR
+            A["team-a"]
+            B["team-b"]
+            C["team-c"]
+            A -- "file_one.rb + test<br/>file_two.rb" --> B
+            C -. "keeps file_three_test.rb<br/>(matches its *txn*_test.rb glob)" .-> C
+        ```
+        """)
+        defer { h.close() }
+        t.expect(h.waitForPreview(), true, "preview loaded")
+        t.expect(waitUntil { evaluate("!!document.querySelector('#content .mermaid svg')", in: h.webView) as? Bool == true },
+                 true, "diagram rendered")
+        let label = evaluate("""
+            [...document.querySelectorAll('#content .mermaid svg .edgeLabel')].map(e => e.textContent).join(' | ')
+            """, in: h.webView) as? String ?? ""
+        t.expect(label.contains("*txn*_test.rb"), true, "asterisks in a label stay literal (got \(label.debugDescription))")
+        t.expect(evaluate("document.querySelectorAll('#content .mermaid svg .edgeLabel em').length", in: h.webView) as? Int, 0,
+                 "no italics in labels")
+        // The self-loop stays next to its node instead of stretching across the page.
+        let sizes = evaluate("""
+            (() => { const svg = document.querySelector('#content .mermaid svg');
+              const node = [...svg.querySelectorAll('.node')].find(n => n.textContent.trim() === 'team-c');
+              // Mermaid 11 draws a self-loop as three edges (C-cyclic-special-*), 12 as one (L_C_C_0).
+              const loop = [...svg.querySelectorAll('path.flowchart-link')]
+                .filter(p => /C_C|C-cyclic/.test(p.getAttribute('data-id') || p.id))
+                .map(p => p.getBoundingClientRect());
+              if (!node || !loop.length) return null;
+              const width = Math.max(...loop.map(r => r.right)) - Math.min(...loop.map(r => r.left));
+              return [node.getBoundingClientRect().width, width]; })()
+            """, in: h.webView) as? [Double]
+        t.expect(sizes != nil, true, "found the self-loop and its node")
+        if let sizes { t.expect(sizes[1] < sizes[0], true, "self-loop narrower than its node (node \(sizes[0]), loop \(sizes[1]))") }
+    }
 }

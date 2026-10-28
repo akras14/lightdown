@@ -149,7 +149,8 @@ final class MarkdownDocument: NSDocument {
         let mermaid = body.contains("class=\"language-mermaid\"") ? """
         <script>\(resource("mermaid.min.js"))</script>
         <script>
-        mermaid.initialize({ startOnLoad: false, theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default' });
+        mermaid.initialize({ startOnLoad: false, theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+                             flowchart: { diagramPadding: 48 } });
         document.querySelectorAll('pre > code.language-mermaid').forEach(code => {
           const div = document.createElement('div');
           div.className = 'mermaid';
