@@ -128,15 +128,32 @@ final class MarkdownDocument: NSDocument {
         panel.allowedContentTypes = [.html]
         panel.nameFieldStringValue = (displayName as NSString).deletingPathExtension + ".html"
         panel.beginSheetModal(for: window) { [weak self] response in
-            guard response == .OK, let url = panel.url, let self else { return }
-            let body = MarkdownRenderer.html(from: self.currentText)
-            do {
-                try Self.standaloneHTML(title: self.displayName, body: body).write(to: url, atomically: true, encoding: .utf8)
-            } catch {
-                self.presentError(error)
-            }
+            guard response == .OK, let url = panel.url else { return }
+            self?.exportHTML(to: url)
         }
     }
+
+    func exportHTML(to url: URL) {
+        let body = MarkdownRenderer.html(from: currentText)
+        do {
+            try Self.standaloneHTML(title: displayName, body: body).write(to: url, atomically: true, encoding: .utf8)
+            Self.revealInFinder(url)
+        } catch {
+            presentErrorSheet(error)
+        }
+    }
+
+    /// On the document's window when it has one, so it doesn't block other documents.
+    private func presentErrorSheet(_ error: Error) {
+        if let window = windowControllers.first?.window {
+            presentError(error, modalFor: window, delegate: nil, didPresent: nil, contextInfo: nil)
+        } else {
+            presentError(error)
+        }
+    }
+
+    /// Shows an exported file in Finder. Replaceable so the checks don't open Finder windows.
+    static var revealInFinder: (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
 
     /// A self-contained HTML page with the preview's styles. `baseURL` resolves relative image paths.
     static func standaloneHTML(title: String, body: String, baseURL: URL? = nil) -> String {

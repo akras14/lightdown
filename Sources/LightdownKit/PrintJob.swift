@@ -64,7 +64,14 @@ extension MarkdownDocument {
         panel.nameFieldStringValue = (displayName as NSString).deletingPathExtension + ".pdf"
         panel.beginSheetModal(for: window) { [weak self] response in
             guard response == .OK, let url = panel.url else { return }
-            self?.runPrintJob(savingTo: url)
+            self?.exportPDF(to: url)
+        }
+    }
+
+    func exportPDF(to url: URL, completion: ((Bool) -> Void)? = nil) {
+        runPrintJob(savingTo: url) { success in
+            if success, FileManager.default.fileExists(atPath: url.path) { Self.revealInFinder(url) }
+            completion?(success)
         }
     }
 
