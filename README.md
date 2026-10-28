@@ -2,7 +2,7 @@
 
 A minimal, native Markdown editor for macOS: an editor on the left and a live preview on the right. It started as a lean replacement for MacDown 3000, mainly to add zoom in and out.
 
-![Lightdown in 20 seconds: zoom, live Mermaid, ⌘L to-dos, the outline and the dark theme](media/demo-hyperframes.gif)
+![Lightdown in 20 seconds: zoom, live Mermaid, ⌘L to-dos, the outline and the dark theme](media/lightdown-demo.gif)
 
 [Watch it as an MP4](media/demo-hyperframes.mp4).
 
