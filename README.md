@@ -4,7 +4,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 
 ![Lightdown in 20 seconds: zoom, live Mermaid, ⌘L to-dos, the outline and the dark theme](media/lightdown-demo.gif)
 
-[Watch it as an MP4](media/demo-hyperframes.mp4).
+[Watch it as an MP4](media/lightdown-demo.mp4).
 
 **[Lightdown-Test.md](Lightdown-Test.md)** shows everything Lightdown supports as a hands-on checklist. Open it in Lightdown and try each feature on the practice text.
 
