@@ -129,6 +129,17 @@ func viewerChecks(_ t: Checker) {
         t.expect(state()["kind"] as? String, "table", "shows the table")
         t.expect(js("document.querySelectorAll('#ld-viewer td').length") as? Int, 10, "viewer holds a copy of the table")
         t.expect(scale() < 1, true, "a table wider than the window is fitted (\(scale()))")
+        // Laid out again at its natural width, not copied squeezed into the page's width.
+        let pageWidth = js("document.querySelector('#content table').offsetWidth") as? Int ?? 0
+        let viewerWidth = js("document.querySelector('#ld-viewer table').offsetWidth") as? Int ?? 0
+        t.expect(viewerWidth > pageWidth, true, "wider than in the page (\(viewerWidth) vs \(pageWidth))")
+        let headerLines = js("""
+            (() => { const th = document.querySelector('#ld-viewer th:nth-child(9)'), cs = getComputedStyle(th);
+                     return Math.round((th.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / parseFloat(cs.lineHeight)); })()
+            """) as? Int
+        t.expect(headerLines, 1, "headers don't wrap")
+        t.expect(js("document.querySelector('#ld-viewer .ld-viewer-item').offsetWidth") as? Int, viewerWidth,
+                 "viewer sized to the table")
         t.expect(js("document.querySelector('#ld-viewer .ld-table-expand') === null") as? Bool, true, "no expand button in the copy")
 
         // Checkboxes in the copy edit the source, and the copy follows.

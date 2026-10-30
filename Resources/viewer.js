@@ -37,7 +37,15 @@ function ldViewerRefresh() {
   const start = ldViewer.source && ldViewer.source.split('-')[0];
   const table = start && document.querySelector(`#content table[data-sourcepos^="${start}-"]`);
   if (!table) return ldViewerClose();
-  ldViewer.el.querySelector('.ld-viewer-item').replaceChildren(table.cloneNode(true));
+  ldViewer.el.querySelector('.ld-viewer-item').replaceChildren(ldViewerTableCopy(table));
+}
+
+// The copy is laid out again in the viewer (see .ld-viewer-table), rather than keeping the page's
+// width, where its columns are squeezed and the text wraps.
+function ldViewerTableCopy(table) {
+  const copy = table.cloneNode(true);
+  copy.classList.add('ld-viewer-table');
+  return copy;
 }
 
 function ldViewerElement() {
@@ -121,9 +129,13 @@ function ldViewerOpen(target) {
   } else if (target.tagName === 'TABLE') {
     ldViewer.kind = 'table';
     ldViewer.source = target.dataset.sourcepos;
-    ldViewer.w = target.scrollWidth || rect.width || 300;
-    ldViewer.h = target.scrollHeight || rect.height || 300;
-    content = target.cloneNode(true);
+    content = ldViewerTableCopy(target);
+    // Measured at its natural size, so the viewer has to be showing.
+    item.style.width = item.style.height = '';
+    item.replaceChildren(content);
+    v.hidden = false;
+    ldViewer.w = content.offsetWidth || rect.width || 300;
+    ldViewer.h = content.offsetHeight || rect.height || 300;
   } else {
     ldViewer.kind = 'diagram';
     content = target.querySelector('svg').cloneNode(true);
@@ -132,9 +144,11 @@ function ldViewerOpen(target) {
     ldViewer.h = (box && box.height) || rect.height || 300;
     content.style.maxWidth = 'none';
   }
-  content.setAttribute('width', ldViewer.w);
-  content.setAttribute('height', ldViewer.h);
-  item.replaceChildren(content);
+  if (ldViewer.kind !== 'table') {
+    content.setAttribute('width', ldViewer.w);
+    content.setAttribute('height', ldViewer.h);
+    item.replaceChildren(content);
+  }
   item.style.width = ldViewer.w + 'px';
   item.style.height = ldViewer.h + 'px';
   v.hidden = false;

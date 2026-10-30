@@ -91,6 +91,9 @@ html.ld-viewer-open { overflow: hidden; }
 #ld-viewer.ld-dragging { cursor: grabbing; }
 .ld-viewer-item { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .ld-viewer-item > * { display: block; width: 100%; height: 100%; }
+/* Natural width, with long cells still wrapping at a readable width. */
+.ld-viewer-item > .ld-viewer-table { width: max-content; height: auto; max-width: none; overflow: visible; }
+.ld-viewer-table th, .ld-viewer-table td { max-width: 40em; }
 .ld-viewer-toolbar {
   position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 2px; padding: 3px;
   background: var(--bg); border: 1px solid var(--border); border-radius: 8px;

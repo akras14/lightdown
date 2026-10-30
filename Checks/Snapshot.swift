@@ -5,7 +5,7 @@ import WebKit
 /// `swift run LightdownChecks --snapshot <file.md> <out.png> [dark] [viewer]`
 /// Renders a document's preview pane to a PNG, for checking styles without screen-recording
 /// permission. (AppKit views in an offscreen window don't draw, so only the preview is captured.)
-/// With `viewer`, the first diagram or image is shown in the zoom viewer.
+/// With `viewer`, the first diagram, image or table is shown in the zoom viewer.
 @MainActor
 func snapshot(markdown: URL, to output: URL, dark: Bool, viewer: Bool = false) {
     NSApp.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
@@ -14,7 +14,7 @@ func snapshot(markdown: URL, to output: URL, dark: Bool, viewer: Bool = false) {
     h.editor.view.window?.setFrame(NSRect(x: -5000, y: -5000, width: 1200, height: 760), display: true)
     _ = h.waitForPreviewSettled()
     if viewer {
-        _ = evaluate("const t = document.querySelector('#content .mermaid, #content img'); if (t) ldViewerOpen(t); 0", in: h.webView)
+        _ = evaluate("const t = document.querySelector('#content .mermaid, #content img, #content table'); if (t) ldViewerOpen(t); 0", in: h.webView)
         waitUntil { (h.webView as? PreviewWebView)?.viewerOpen == true }
     }
 
