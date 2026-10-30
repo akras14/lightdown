@@ -29,7 +29,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 - **GitHub-style Markdown** via [cmark-gfm](https://github.com/swiftlang/swift-cmark): tables, task lists, strikethrough, footnotes, autolinks.
 - **Heading links.** Headings get GitHub-style IDs, so `[see setup](#setup)` jumps to them.
 - **Mermaid diagrams** in fenced ` ```mermaid ` blocks, and syntax colouring for code.
-- **Zoom viewer.** Click a diagram or image (or right-click > Open in Viewer) to see it full-window. Zoom with the toolbar, a pinch or ⌘-scroll, drag to pan, and press Esc to close.
+- **Zoom viewer.** Click a diagram or image, or the ⤢ button that appears when you hover a table (or right-click > Open in Viewer), to see it full-window. Checkboxes in a table still work there. Zoom with the toolbar, a pinch or ⌘-scroll, drag to pan, and press Esc to close.
 - **Two-way scroll sync by source line.** Scrolling either pane keeps the same content at the top of the other, even past images and long code blocks.
 
 **Window**
@@ -46,6 +46,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 ![Files: three documents open as tabs in one window](media/screenshots/files.png)
 
 - **Standard Mac documents:** autosave, version history, tabs, Open Recent, find and replace. The documents you had open come back when you reopen Lightdown.
+- **Tab shortcuts.** ⌘1–⌘9 jump to the first nine tabs, and each of those tabs shows its shortcut next to its name.
 - **Export** to HTML (⇧⌘E) or PDF, **Copy HTML** (⌥⌘C) for pasting into a blog or email, and **print**. PDFs and printouts are always at normal size and in light colours.
 - **Works offline.** Everything is bundled and nothing loads from the network.
 
@@ -97,11 +98,12 @@ To make Lightdown the default for `.md` files, open **Get Info** on any `.md` fi
 | `Sources/LightdownKit/PrintJob.swift` | Printing and PDF export |
 | `Sources/LightdownKit/ImageInsertion.swift` | Pasting and dropping images |
 | `Sources/LightdownKit/Theme.swift` | Appearance setting and shared colours |
+| `Sources/LightdownKit/TabShortcuts.swift` | ⌘1–⌘9 tab switching and the shortcut in each tab's title |
 | `Sources/Lightdown/main.swift` | Starts the app (the code lives in `LightdownKit`) |
 | `Checks/` | Test suite |
 | `Resources/preview.html`, `preview.css` | Preview page: rendering, scroll sync, checkbox clicks, styles |
 | `Resources/headings.js` | Heading IDs, shared by the preview and HTML export |
-| `Resources/viewer.js` | Zoom viewer for diagrams and images in the preview |
+| `Resources/viewer.js` | Zoom viewer for diagrams, images and tables in the preview |
 | `scripts/make-icon.swift` | Builds `AppIcon.icns` from `icon-source.jpg` |
 
 To change the icon, replace `icon-source.jpg` and run `swift scripts/make-icon.swift icon-source.jpg`.

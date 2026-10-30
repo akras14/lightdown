@@ -183,6 +183,8 @@ print(Greeting(name: "Lightdown").message())
 ---
 
 - [ ] The diagram, code colours, table alignment and blockquote all look right
+- [ ] Hover the table above: a ⤢ button appears in its corner; click it to open the table in the viewer, then press Esc
+- [ ] Open the habit table in section 6 the same way and tick a box in the viewer: it ticks in the source too
 - [ ] Clicking an external link opens it in your browser
 
 ## 11. Word count
@@ -251,6 +253,8 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 - [ ] Open and close the outline (⌥⌘O) a few times: the editor and preview keep their widths
 - [ ] ⌘F finds in the editor; ⌥⌘F finds and replaces
 - [ ] ⌘Z / ⇧⌘Z undo and redo every kind of edit above
+- [ ] Open three documents as tabs: they show ⌘1, ⌘2 and ⌘3 next to their names, and ⌘2 jumps to the second
+- [ ] Drag a tab to a new place: the numbers follow the new order
 
 ## 16. Reopening and recent files
 
