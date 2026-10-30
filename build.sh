@@ -11,6 +11,11 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Lightdown"
 cp Info.plist "$APP/Contents/Info.plist"
+# Stamp the build so About shows which commit it came from.
+COMMIT="$(git rev-parse --short HEAD)"
+git diff --quiet HEAD || COMMIT="$COMMIT-dirty"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(git rev-list --count HEAD)" \
+    -c "Add :LightdownCommit string $COMMIT" "$APP/Contents/Info.plist"
 cp Resources/* "$APP/Contents/Resources/"
 cp LICENSE NOTICE "$APP/Contents/Resources/"
 codesign --force --sign - "$APP"

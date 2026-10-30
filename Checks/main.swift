@@ -31,6 +31,7 @@ MainActor.assumeIsolated {
     viewerChecks(t)
     moveChecks(t)
     tabShortcutChecks(t)
+    versionChecks(t)
 
     print(t.failures == 0 ? "✔ \(t.count) checks passed" : "✘ \(t.failures) of \(t.count) checks failed")
     exit(t.failures == 0 ? 0 : 1)

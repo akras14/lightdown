@@ -36,6 +36,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         Theme.appearance = Theme.Appearance(rawValue: sender.tag) ?? .system
     }
 
+    /// The standard panel, with the build's commit next to the version.
+    @MainActor @objc func showAbout(_ sender: Any?) {
+        AppVersion.showAboutPanel()
+    }
+
     /// ⌘1–⌘9: the menu item's tag is the tab number.
     @MainActor @objc func showTabNumber(_ sender: NSMenuItem) {
         guard let window = NSApp.keyWindow ?? NSApp.mainWindow else { return }
@@ -97,7 +102,7 @@ enum MainMenu {
     private static func appMenu() -> NSMenu {
         let name = ProcessInfo.processInfo.processName
         let menu = NSMenu(title: name)
-        menu.addItem(item("About \(name)", #selector(NSApplication.orderFrontStandardAboutPanel(_:))))
+        menu.addItem(item("About \(name)", #selector(AppDelegate.showAbout(_:))))
         menu.addItem(.separator())
         let services = NSMenu(title: "Services")
         let servicesItem = submenu(services)
