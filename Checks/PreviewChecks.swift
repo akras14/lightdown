@@ -29,6 +29,8 @@ func previewChecks(_ t: Checker) {
         t.expect(html.contains("[ ]") || html.contains("[x]") || html.contains("[X]"), false, "no brackets left")
         t.expect(checked("| a |\n|---|\n| see [ ] |\n| `[x]` |\n| \\[ ] |\n| [ ]x |\n"), [],
                  "only a box at the start of a cell, followed by a space or the cell end")
+        t.expect(checked("| Project | Done |\n|---|:-:|\n| **Search** 1 | [x] |\n| `code` | [ ] |\n| [a](https://x.y) | [ ] |\n"),
+                 [true, false, false], "boxes after cells with inline markup")
     }
 
     t.group("bare checkboxes") {
