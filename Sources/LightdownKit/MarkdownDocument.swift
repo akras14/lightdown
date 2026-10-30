@@ -38,7 +38,7 @@ final class MarkdownDocument: NSDocument {
     override func makeWindowControllers() {
         let content = DocumentViewController(document: self)
         let window = NSWindow(contentViewController: content)
-        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.setContentSize(NSSize(width: 1200, height: 800))
         window.minSize = NSSize(width: 480, height: 300)
         window.tabbingMode = .preferred

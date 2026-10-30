@@ -68,6 +68,17 @@ func layoutChecks(_ t: Checker) {
     }
 
     // Obsidian style: the outline opens on the right, taking its room from the preview.
+    // The tab bar is see-through on macOS 26, so content under it (like the outline's grey)
+    // showed behind the tabs.
+    t.group("nothing under the title and tab bar") {
+        let h = DocumentHarness("# One\n")
+        defer { h.close() }
+        let window = h.editor.view.window!
+        let content = window.contentView!
+        t.expect(window.styleMask.contains(.fullSizeContentView), false, "content view starts below the title bar")
+        t.expect(window.contentLayoutRect.height, content.bounds.height, "the whole content view is usable")
+    }
+
     t.group("outline on the right") {
         let h = DocumentHarness("# One\n\ntext\n\n## Two\n")
         defer { h.close() }
