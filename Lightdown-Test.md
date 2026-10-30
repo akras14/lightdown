@@ -81,12 +81,23 @@ Lazy numbering stays lazy (press Return after "Bravo"):
 - [ ] Press Return at the end of a to-do: a new empty to-do appears
 - [ ] Click checkboxes in the **preview**; ⌘Z undoes a click
 - [ ] Ticked items are dimmed in the editor
+- [ ] The bare `[ ]` lines below show as checkboxes in the preview; clicking one ticks it in the source, and ⌘L on one ticks it too
+- [ ] Click the checkboxes in the table cells below
+- [ ] `[ ]` in the middle of a line, in `code` or escaped as `\[ ]` stays text
 
 Practice lines:
 
 Buy milk
 Call the dentist
 Water the plants
+
+[ ] Bare checkbox, no list marker
+[x] Another, already ticked
+
+| Habit | Mon | Tue | Wed |
+|---|:-:|:-:|:-:|
+| Run | [ ] | [x] | [ ] |
+| Read | [ ] | [ ] | [ ] |
 
 ## 7. Moving list items
 

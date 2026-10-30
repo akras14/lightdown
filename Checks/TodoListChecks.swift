@@ -13,12 +13,20 @@ func todoListChecks(_ t: Checker) {
             ("- [ ]", "- [x] "),
             ("- [x]text", "- [ ] [x]text"),
             ("1.5 apples", "- [ ] 1.5 apples"),
+            // A checkbox without a list marker toggles too, and stays without one.
+            ("[ ] buy milk", "[x] buy milk"),
+            ("[x] buy milk", "[ ] buy milk"),
+            ("  [X] buy milk", "  [ ] buy milk"),
+            ("[ ]", "[x] "),
+            ("[link](url)", "- [ ] [link](url)"),
         ]
         for (input, expected) in cases {
             t.expect(TodoList.toggle([input]), [expected], input)
         }
         t.expect(TodoList.toggle(["a", "", "- [x] b", "- [ ] c"]), ["- [ ] a", "", "- [ ] b", "- [ ] c"])
         t.expect(TodoList.toggle(["- [ ] a", "b", "- [x] c"]), ["- [x] a", "- [x] b", "- [x] c"])
+        t.expect(TodoList.toggle(["[ ] a", "[ ] b"]), ["[x] a", "[x] b"], "bare checkboxes")
+        t.expect(TodoList.toggle(["a", "[ ] b"]), ["- [ ] a", "[ ] b"], "plain line gets a list marker")
     }
 
     t.group("todo editing") {

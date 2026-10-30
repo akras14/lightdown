@@ -24,27 +24,32 @@ h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--bord
 h3 { font-size: 1.25em; } h4 { font-size: 1em; } h5 { font-size: .875em; } h6 { font-size: .85em; color: var(--muted); }
 p, ul, ol, blockquote, pre, table, dl { margin: 0 0 1em; }
 a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
-ul, ol { padding-left: 2em; } li + li { margin-top: .25em; }
-li > ul, li > ol { margin: .25em 0 0; } /* nested lists: no extra gap after them */
+/* Tight lists: one line per item, no gap between items or before a nested list. */
+ul, ol { padding-left: 2em; } li { line-height: 1.5; }
+li > ul, li > ol { margin: 0; }
 /* Task lists: no bullets, checkbox flush with the text column, and a hanging indent so wrapped
    lines, later paragraphs and nested items line up with the item's text, not the checkbox. */
 ul:has(> li > input[type=checkbox]) { padding-left: 0; }
-li:has(> input[type=checkbox]) { list-style: none; padding-left: 1.3em; line-height: 1.5; }
+li:has(> input[type=checkbox]) { list-style: none; padding-left: 1.3em; }
 li:has(> input[type=checkbox]) > ul:has(> li > input[type=checkbox]) { padding-left: 0; }
-li:has(> input[type=checkbox]) + li, li:has(> input[type=checkbox]) > ul { margin-top: .15em; }
 /* Loose task lists (blank lines between items) wrap the text in <p>: keep the first one on the
    checkbox's line. */
 li > input[type=checkbox] + p { display: inline; }
 li > input[type=checkbox] + p + * { margin-top: .5em; }
 li:has(> input[type=checkbox] + p) + li { margin-top: .6em; }
-li > input[type=checkbox] {
+li > input[type=checkbox], td > input[type=checkbox], th > input[type=checkbox], p > input[type=checkbox] {
   -webkit-appearance: none; appearance: none;
   /* Form controls default to their own smaller font; inherit so these em sizes match the text. */
   font-size: inherit; width: .76em; height: .76em; margin: 0 .3em 0 -1.3em;
   vertical-align: middle; position: relative; top: -.08em;
   border: 1.5px solid var(--muted); border-radius: .22em; background: transparent; cursor: pointer;
 }
-li > input[type=checkbox]:checked {
+td > input[type=checkbox], th > input[type=checkbox] { margin: 0; }
+/* Bare "[ ]" lines: spaced like list items. */
+p > input[type=checkbox] { margin: 0 .3em 0 0; }
+p:has(> input[type=checkbox]) { line-height: 1.5; }
+li > input[type=checkbox]:checked, td > input[type=checkbox]:checked, th > input[type=checkbox]:checked,
+p > input[type=checkbox]:checked {
   border-color: var(--link);
   background: var(--link) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
 }

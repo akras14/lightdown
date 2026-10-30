@@ -24,17 +24,18 @@ enum TodoList {
             case let box? where box.lowercased() == "x": state = .checked
             default: state = .plain
             }
-            if marker == nil { state = .plain }
             text = group(4) ?? ""
         }
 
-        var isBlank: Bool { marker == nil && text.trimmingCharacters(in: .whitespaces).isEmpty }
+        var isBlank: Bool { marker == nil && state == .plain && text.trimmingCharacters(in: .whitespaces).isEmpty }
 
         func rendered(as newState: State) -> String {
+            // A plain line becomes a "- [ ]" item; a bare "[ ]" stays bare.
+            let prefix = marker.map { "\($0) " } ?? (state == .plain ? "- " : "")
             switch newState {
             case .plain: return indent + text
-            case .unchecked: return "\(indent)\(marker ?? "-") [ ] \(text)"
-            case .checked: return "\(indent)\(marker ?? "-") [x] \(text)"
+            case .unchecked: return "\(indent)\(prefix)[ ] \(text)"
+            case .checked: return "\(indent)\(prefix)[x] \(text)"
             }
         }
 
@@ -44,9 +45,10 @@ enum TodoList {
         }
     }
 
-    // indent, optional list marker, optional checkbox, rest of the line
+    // indent, optional list marker, optional checkbox, rest of the line. A checkbox without
+    // a marker ("[ ] item") still counts.
     private static let lineRegex = try! NSRegularExpression(
-        pattern: #"^([ \t]*)(?:([-*+]|\d+[.)])[ \t]+(?:\[([ xX])\](?:[ \t]+|$))?)?(.*)$"#)
+        pattern: #"^([ \t]*)(?:([-*+]|\d+[.)])[ \t]+)?(?:\[([ xX])\](?:[ \t]+|$))?(.*)$"#)
 
     /// Toggles a group of lines together. The first non-blank line decides:
     /// plain/list item -> unchecked, unchecked -> checked, checked -> unchecked.
@@ -61,6 +63,23 @@ enum TodoList {
         return zip(lines, parsed).map { original, line in
             line.isBlank || line.state == target ? original : line.rendered(as: target)
         }
+    }
+
+    /// Checks or unchecks the first box at or after `column`, skipping spaces and quote markers.
+    /// `column` is a 1-based byte offset like cmark's source positions, e.g. where a table cell
+    /// starts. Returns nil when there's no box there.
+    static func toggleBox(_ line: String, column: Int) -> String? {
+        var bytes = Array(line.utf8)
+        var i = column - 1
+        guard i >= 0 else { return nil }
+        while i < bytes.count, [" ", "\t", ">"].map(UInt8.init(ascii:)).contains(bytes[i]) { i += 1 }
+        guard i + 2 < bytes.count, bytes[i] == UInt8(ascii: "["), bytes[i + 2] == UInt8(ascii: "]") else { return nil }
+        switch bytes[i + 1] {
+        case UInt8(ascii: " "): bytes[i + 1] = UInt8(ascii: "x")
+        case UInt8(ascii: "x"), UInt8(ascii: "X"): bytes[i + 1] = UInt8(ascii: " ")
+        default: return nil
+        }
+        return String(decoding: bytes, as: UTF8.self)
     }
 }
 
@@ -104,6 +123,17 @@ extension EditorTextView {
             guard item.state != .plain else { return lines }
             var result = lines
             result[line] = item.rendered(as: item.state == .checked ? .unchecked : .checked)
+            return result
+        }
+    }
+
+    /// Checks or unchecks the box at `line` (0-based) and `column` (1-based byte offset), when a
+    /// table or bare checkbox is clicked in the preview.
+    func toggleCheckbox(line: Int, column: Int) {
+        editLines("Toggle To-Do") { lines in
+            guard line >= 0, line < lines.count, let toggled = TodoList.toggleBox(lines[line], column: column) else { return lines }
+            var result = lines
+            result[line] = toggled
             return result
         }
     }

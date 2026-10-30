@@ -17,7 +17,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 - **Zoom.** ⌘= / ⌘- / ⌘0, or pinch on the trackpad. One zoom level covers the editor and the preview, and it's remembered between launches.
 - **Formatting shortcuts.** ⌘B bold, ⌘I italic, ⇧⌘X strikethrough, ⌃` inline code, ⌘K link. Each one toggles, and applies to the word at the cursor when nothing is selected. ⌘K uses a copied URL as the link target.
 - **Lists.** Return continues bullet, numbered and to-do lists; Return on an empty item moves it up a level or ends the list. Tab / ⇧Tab indent and outdent items with their sub-items, and numbered lists renumber themselves.
-- **To-dos.** ⌘L turns a line into a to-do (`- [ ] `), then checks and unchecks it, on one line or a whole selection. You can also click checkboxes in the preview.
+- **To-dos.** ⌘L turns a line into a to-do (`- [ ] `), then checks and unchecks it, on one line or a whole selection. You can also click checkboxes in the preview, including on bare `[ ] item` lines and at the start of table cells, which Lightdown shows as checkboxes too (GitHub shows them as text).
 - **Move list items.** ⇧⌘↑ / ⇧⌘↓ swap the current item, with its sub-items, past its neighbour. Numbered lists keep their order. In ordinary text these keys still select to the start or end of the document.
 - **Images.** Paste a screenshot or drop image files into the editor. Images are saved or copied into an `images/` folder next to the document and linked.
 - **Reloads on outside changes.** If git, another editor or an AI tool changes the file, Lightdown picks up the change and keeps your place. If you also have unsaved edits, it asks which version to keep.

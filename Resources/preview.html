@@ -26,7 +26,7 @@
     c.innerHTML = html;
     ldAddHeadingIds(c);
     c.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
-    c.querySelectorAll('li input[type=checkbox]').forEach(el => { el.disabled = false; });
+    c.querySelectorAll('li input[type=checkbox], input[data-line]').forEach(el => { el.disabled = false; });
     ldRenderMermaid(c, gen);
   }
   // Scroll sync. Elements carry data-sourcepos="startLine:col-endLine:col"; lines are 1-based
@@ -165,11 +165,16 @@
 
   // Clicking a task checkbox edits the source; the re-render then shows the new state.
   document.addEventListener('click', e => {
-    const box = e.target.closest('li input[type=checkbox]');
+    const box = e.target.closest('input[type=checkbox]');
     if (!box) return;
-    e.preventDefault();
     const li = box.closest('li[data-sourcepos]');
-    if (li) ldPost({ type: 'toggleTask', line: parseInt(li.dataset.sourcepos, 10) });
+    if (box.dataset.line) {   // in a table cell or a paragraph line
+      e.preventDefault();
+      ldPost({ type: 'toggleBox', line: +box.dataset.line, column: +box.dataset.column });
+    } else if (li) {
+      e.preventDefault();
+      ldPost({ type: 'toggleTask', line: parseInt(li.dataset.sourcepos, 10) });
+    }
   });
 
   // In-page anchors (e.g. footnotes) would otherwise resolve against <base>.

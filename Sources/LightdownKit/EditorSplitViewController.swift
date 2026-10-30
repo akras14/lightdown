@@ -509,6 +509,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
             }
         case "toggleTask":
             if let line = body["line"] as? Int { textView.toggleTaskCheckbox(line: line - 1) }
+        case "toggleBox":
+            if let line = body["line"] as? Int, let column = body["column"] as? Int {
+                textView.toggleCheckbox(line: line - 1, column: column)
+            }
         case "viewer":
             webView.viewerOpen = body["open"] as? Bool ?? false
         case "viewerTarget":
