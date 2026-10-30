@@ -33,7 +33,6 @@ func layoutChecks(_ t: Checker) {
         // Same with the outline open.
         h.editor.toggleOutline(nil)
         defer { h.editor.toggleOutline(nil) }
-        waitUntil(timeout: 0.5) { false }
         split.layoutSubtreeIfNeeded()
         t.expect(abs(moveDivider(to: 700) - 700) < 2, true, "divider moves with the outline open")
     }
@@ -58,13 +57,11 @@ func layoutChecks(_ t: Checker) {
         h.editor.splitView.setPosition(600, ofDividerAt: 0)
         check("both panes")
         h.editor.toggleOutline(nil)
-        waitUntil(timeout: 0.5) { false }
         check("outline open")
         h.editor.toggleOutline(nil)
-        h.editor.togglePreview(nil)
-        waitUntil(timeout: 0.5) { false }
+        t.expect(togglePreview(h.editor), true, "preview hidden")
         check("preview hidden")
-        h.editor.togglePreview(nil)
+        t.expect(togglePreview(h.editor), true, "preview shown")
     }
 
     // Obsidian style: the outline opens on the right, taking its room from the preview.
@@ -92,7 +89,6 @@ func layoutChecks(_ t: Checker) {
 
         h.editor.toggleOutline(nil)
         defer { h.editor.toggleOutline(nil) }
-        waitUntil(timeout: 0.6) { false }
         split.layoutSubtreeIfNeeded()
         t.expect(frame(editor).minX, 0, "editor still starts at the left edge")
         t.expect(abs(frame(outline).maxX - split.bounds.width) < 1, true, "outline ends at the right edge (\(frame(outline)))")
@@ -113,20 +109,20 @@ func layoutChecks(_ t: Checker) {
         let editor = h.editor.splitViewItems[0].viewController.view, preview = h.editor.splitViewItems[1].viewController.view
         let before = (editor.frame.width, preview.frame.width)
         for round in 1...3 {
-            h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
-            h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
+            h.editor.toggleOutline(nil)
+            h.editor.toggleOutline(nil)
             split.layoutSubtreeIfNeeded()
             t.expect(abs(editor.frame.width - before.0) < 2 && abs(preview.frame.width - before.1) < 2, true,
                      "round \(round): editor \(Int(before.0)) → \(Int(editor.frame.width)), preview \(Int(before.1)) → \(Int(preview.frame.width))")
         }
         // With the preview hidden, closing the outline gives the editor its room back.
-        h.editor.togglePreview(nil); waitUntil(timeout: 0.6) { false }
-        h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
-        h.editor.toggleOutline(nil); waitUntil(timeout: 0.6) { false }
+        t.expect(togglePreview(h.editor), true, "preview hidden")
+        h.editor.toggleOutline(nil)
+        h.editor.toggleOutline(nil)
         split.layoutSubtreeIfNeeded()
         t.expect(abs(split.arrangedSubviews[0].frame.width - split.bounds.width) < 2, true,
                  "preview hidden: editor fills the window (\(Int(split.arrangedSubviews[0].frame.width)))")
-        h.editor.togglePreview(nil); waitUntil(timeout: 0.6) { false }
+        t.expect(togglePreview(h.editor), true, "preview shown")
     }
 
     t.group("split evenly") {
@@ -136,7 +132,6 @@ func layoutChecks(_ t: Checker) {
         let split = h.editor.splitView
         let editor = h.editor.splitViewItems[0].viewController.view, preview = h.editor.splitViewItems[1].viewController.view
         @MainActor func even(_ what: String) {
-            waitUntil(timeout: 0.6) { false }
             split.layoutSubtreeIfNeeded()
             t.expect(abs(editor.frame.width - preview.frame.width) < 2, true,
                      "\(what): \(Int(editor.frame.width)) / \(Int(preview.frame.width))")
@@ -146,12 +141,10 @@ func layoutChecks(_ t: Checker) {
         even("menu command")
         split.setPosition(850, ofDividerAt: 0)
         h.editor.toggleOutline(nil)
-        waitUntil(timeout: 0.6) { false }
         h.editor.splitEvenly(nil)
         even("with the outline open")
         h.editor.toggleOutline(nil)
-        h.editor.togglePreview(nil)
-        waitUntil(timeout: 0.6) { false }
+        t.expect(togglePreview(h.editor), true, "preview hidden")
         h.editor.splitEvenly(nil)
         t.expect(h.editor.splitViewItems[1].isCollapsed, false, "brings a hidden preview back")
         even("after hiding the preview")
@@ -182,15 +175,23 @@ func layoutChecks(_ t: Checker) {
         for start in [nil, 400.0, 900.0] as [CGFloat?] {
             if let start { split.setPosition(start, ofDividerAt: 0) } else { h.editor.splitEvenly(nil) }
             let before = share()
-            h.editor.toggleOutline(nil); waitUntil(timeout: 0.3) { false }
+            h.editor.toggleOutline(nil)
             let open = share()
             h.editor.splitEvenly(nil)
             let evenOpen = share()
-            h.editor.toggleOutline(nil); waitUntil(timeout: 0.3) { false }
+            h.editor.toggleOutline(nil)
             let closed = share()
             t.expect(abs(open - before) < 0.01, true, "\(start.map { "from \(Int($0))" } ?? "from even"): opening \(pct(before)) → \(pct(open))")
             t.expect(abs(closed - evenOpen) < 0.01 && abs(evenOpen - 0.5) < 0.01, true,
                      "\(start.map { "from \(Int($0))" } ?? "from even"): even with the outline open, then closing: \(pct(evenOpen)) → \(pct(closed))")
         }
     }
+}
+
+/// Hides or shows the preview and waits for its animation to finish. False if it never finishes.
+@MainActor
+private func togglePreview(_ editor: EditorSplitViewController) -> Bool {
+    var done = false
+    editor.togglePreview(completion: { done = true })
+    return waitUntil { done }
 }

@@ -455,14 +455,22 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         return super.splitView(splitView, shouldCollapseSubview: subview, forDoubleClickOnDividerAt: dividerIndex)
     }
 
-    @IBAction func togglePreview(_ sender: Any?) {
-        if previewItem.isCollapsed == false && editorItem.isCollapsed { return }
-        previewItem.animator().isCollapsed.toggle()
+    @IBAction func togglePreview(_ sender: Any?) { togglePreview(completion: nil) }
+
+    /// Slides the preview in or out; `completion` runs once the animation has finished.
+    func togglePreview(completion: (() -> Void)?) {
+        if previewItem.isCollapsed == false && editorItem.isCollapsed { completion?(); return }
+        NSAnimationContext.runAnimationGroup({ _ in previewItem.animator().isCollapsed.toggle() },
+                                             completionHandler: completion)
     }
 
-    @IBAction func toggleEditor(_ sender: Any?) {
-        if editorItem.isCollapsed == false && previewItem.isCollapsed { return }
-        editorItem.animator().isCollapsed.toggle()
+    @IBAction func toggleEditor(_ sender: Any?) { toggleEditor(completion: nil) }
+
+    /// Slides the editor in or out; `completion` runs once the animation has finished.
+    func toggleEditor(completion: (() -> Void)?) {
+        if editorItem.isCollapsed == false && previewItem.isCollapsed { completion?(); return }
+        NSAnimationContext.runAnimationGroup({ _ in editorItem.animator().isCollapsed.toggle() },
+                                             completionHandler: completion)
         if editorItem.isCollapsed == false { view.window?.makeFirstResponder(textView) }
     }
 

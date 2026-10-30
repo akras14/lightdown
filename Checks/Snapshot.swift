@@ -12,11 +12,10 @@ func snapshot(markdown: URL, to output: URL, dark: Bool, viewer: Bool = false) {
     let h = DocumentHarness((try? String(contentsOf: markdown, encoding: .utf8)) ?? "")
     defer { h.close() }
     h.editor.view.window?.setFrame(NSRect(x: -5000, y: -5000, width: 1200, height: 760), display: true)
-    _ = h.waitForPreview()
-    waitUntil(timeout: 1.5) { false }   // let diagrams and highlighting settle
+    _ = h.waitForPreviewSettled()
     if viewer {
         _ = evaluate("const t = document.querySelector('#content .mermaid, #content img'); if (t) ldViewerOpen(t); 0", in: h.webView)
-        waitUntil(timeout: 0.5) { false }
+        waitUntil { (h.webView as? PreviewWebView)?.viewerOpen == true }
     }
 
     var image: NSImage?

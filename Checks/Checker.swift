@@ -82,6 +82,18 @@ func waitUntil(timeout: TimeInterval = 5, _ condition: () -> Bool) -> Bool {
     return condition()
 }
 
+/// For asserting that nothing changes (no bounce, no save): checks `condition` throughout
+/// `duration` and returns false as soon as it fails. Don't use it to wait for something to happen.
+@MainActor
+func holds(for duration: TimeInterval, _ condition: () -> Bool) -> Bool {
+    let deadline = Date().addingTimeInterval(duration)
+    while Date() < deadline {
+        guard condition() else { return false }
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
+    }
+    return condition()
+}
+
 /// Runs JavaScript in the preview and waits for the result.
 @MainActor
 func evaluate(_ js: String, in webView: WKWebView) -> Any? {
@@ -124,6 +136,22 @@ final class DocumentHarness {
     func waitForPreview() -> Bool {
         waitUntil { self.editor.previewReady } &&
             waitUntil { (evaluate("document.getElementById('content').childElementCount", in: self.webView) as? Int ?? 0) > 0 }
+    }
+
+    /// Waits until the preview has drawn its diagrams and loaded its images.
+    func waitForPreviewSettled() -> Bool {
+        waitForPreview() && waitUntil {
+            evaluate("""
+                document.querySelectorAll('#content code.language-mermaid').length === 0 &&
+                [...document.images].every(i => i.complete)
+                """, in: self.webView) as? Bool == true
+        }
+    }
+
+    /// Whether the preview has followed the editor to its current top line.
+    func previewFollowsEditor() -> Bool {
+        guard let line = evaluate("ldLastLine", in: webView) as? Double else { return false }
+        return abs(line - editor.textView.topVisibleLine()) < 0.01
     }
 
     func close() {

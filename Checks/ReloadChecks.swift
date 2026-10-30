@@ -157,7 +157,8 @@ func reloadChecks(_ t: Checker) {
         defer { doc.close() }
         let content = doc.windowControllers.first!.contentViewController as! DocumentViewController
         content.editor.textView.insertText("draft", replacementRange: NSRange(location: 0, length: 0))
-        waitUntil(timeout: 1.5) { false }
+        t.expect(waitUntil { doc.isDocumentEdited }, true, "marked edited")
+        doc.saveNow()   // what the delayed save runs
         t.expect(doc.fileURL, nil, "untitled stays untitled")
         t.expect(doc.isDocumentEdited, true, "still unsaved")
     }

@@ -30,39 +30,42 @@ func scrollSyncChecks(_ t: Checker) {
 
         // Editor -> preview: a heading at the top of the editor ends up at the top of the preview.
         view.scrollToLine(Double(line(of: "## Section 20")))
-        waitUntil(timeout: 1) { false }
+        waitUntil { previewTop(of: "#section-20").map { abs($0) <= 3 } ?? false }
         let top20 = previewTop(of: "#section-20")
         t.expect(top20.map { abs($0) <= 3 }, true, "editor → preview: heading at top (offset \(top20 ?? .nan))")
 
         // Middle of a code block lines up too.
         let codeStart = line(of: "## Section 9") + 2   // the ``` line
         view.scrollToLine(Double(codeStart + 20))
-        waitUntil(timeout: 1) { false }
-        let fraction = evaluate("""
-            (() => { const pre = document.querySelector('#section-9').nextElementSibling;
-                     const r = pre.getBoundingClientRect(); return -r.top / r.height; })()
-            """, in: h.webView) as? Double
+        @MainActor func codeFraction() -> Double? {
+            evaluate("""
+                (() => { const pre = document.querySelector('#section-9').nextElementSibling;
+                         const r = pre.getBoundingClientRect(); return -r.top / r.height; })()
+                """, in: h.webView) as? Double
+        }
+        waitUntil { codeFraction().map { abs($0 - 20.0 / 42.0) < 0.05 } ?? false }
+        let fraction = codeFraction()
         t.expect(fraction.map { abs($0 - 20.0 / 42.0) < 0.05 }, true, "code block midpoint (fraction \(fraction ?? .nan))")
 
-        // Preview -> editor.
+        // Preview -> editor, once the preview stops ignoring scrolls caused by following the editor.
+        waitUntil { evaluate("performance.now() >= ldIgnoreScrollUntil", in: h.webView) as? Bool == true }
         _ = evaluate("document.getElementById('section-25').scrollIntoView(); 0", in: h.webView)
         let target = Double(line(of: "## Section 25"))
         t.expect(waitUntil(timeout: 2) { abs(view.topVisibleLine() - target) < 0.3 }, true,
                  "preview → editor: line \(target) at top (got \(view.topVisibleLine()))")
 
         // No feedback loop: things stay put afterwards.
-        waitUntil(timeout: 0.6) { false }
-        t.expect(abs(view.topVisibleLine() - target) < 0.3, true, "stable after sync (got \(view.topVisibleLine()))")
+        t.expect(holds(for: 0.6) { abs(view.topVisibleLine() - target) < 0.3 }, true,
+                 "stable after sync (got \(view.topVisibleLine()))")
 
         // Bottoms line up.
         view.scrollToBottom()
-        waitUntil(timeout: 1) { false }
-        let atBottom = evaluate("window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 1", in: h.webView) as? Bool
-        t.expect(atBottom, true, "editor at bottom → preview at bottom")
+        t.expect(waitUntil {
+            evaluate("window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 1", in: h.webView) as? Bool == true
+        }, true, "editor at bottom → preview at bottom")
 
         // Top of the document.
         view.scrollToLine(0)
-        waitUntil(timeout: 1) { false }
-        t.expect(evaluate("window.scrollY", in: h.webView) as? Double, 0, "both at top")
+        t.expect(waitUntil { evaluate("window.scrollY", in: h.webView) as? Double == 0 }, true, "both at top")
     }
 }

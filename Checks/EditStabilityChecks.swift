@@ -12,13 +12,12 @@ func editStabilityChecks(_ t: Checker) {
         let window = h.editor.view.window!
         window.setFrame(NSRect(x: -5000, y: -5000, width: 1200, height: 760), display: true)
         window.orderFrontRegardless()
-        t.expect(h.waitForPreview(), true, "preview loaded")
-        waitUntil(timeout: 1) { false }
+        t.expect(h.waitForPreviewSettled(), true, "preview loaded")
 
         let view = h.editor.textView!
         let text = view.string as NSString
         view.scrollToLine(Double(text.substring(to: text.range(of: "## 12. Scroll sync").location).components(separatedBy: "\n").count))
-        waitUntil(timeout: 0.6) { false }
+        t.expect(waitUntil { h.previewFollowsEditor() }, true, "preview followed the editor")
 
         // Select a word in view and press Cmd+B.
         let word = text.range(of: "Paragraph after the image")
@@ -52,7 +51,6 @@ func editStabilityChecks(_ t: Checker) {
             editorPath.append(view.topVisibleLine())
             if let y = evaluate("window.scrollY", in: h.webView) as? Double { previewPath.append(y) }
         }
-        waitUntil(timeout: 0.5) { false }
         t.expect(directionChanges(editorPath), 0, "editor scrolls smoothly after the edit")
         t.expect(directionChanges(previewPath), 0, "preview follows smoothly after the edit")
     }
