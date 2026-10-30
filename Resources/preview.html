@@ -27,6 +27,8 @@
     ldAddHeadingIds(c);
     c.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
     c.querySelectorAll('li input[type=checkbox], input[data-line]').forEach(el => { el.disabled = false; });
+    ldViewerAddTableButtons(c);
+    ldViewerRefresh();
     ldRenderMermaid(c, gen);
   }
   // Scroll sync. Elements carry data-sourcepos="startLine:col-endLine:col"; lines are 1-based

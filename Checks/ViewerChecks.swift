@@ -10,6 +10,10 @@ func viewerChecks(_ t: Checker) {
 
     Some text.
 
+    | Habit | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Notes, long enough to make this table wider than the window | More notes, also long enough to keep going past the edge |
+    |---|---|---|---|---|---|---|---|---|---|
+    | Run | [ ] | [x] | [ ] | [ ] | [ ] | [ ] | [ ] | a | b |
+
     ```mermaid
     graph LR
       Alpha --> Beta --> Gamma --> Delta --> Epsilon
@@ -114,10 +118,33 @@ func viewerChecks(_ t: Checker) {
         t.expect(isOpen(), false, "an image inside a link follows the link instead")
     }
 
+    t.group("zoom viewer: tables") {
+        t.expect(h.waitForPreview(), true, "preview loaded")
+        click("#content td")
+        t.expect(isOpen(), false, "clicking a cell doesn't open the viewer")
+        t.expect(js("document.querySelectorAll('#content .ld-table-expand').length") as? Int, 1, "table has an expand button")
+
+        click("#content .ld-table-expand")
+        t.expect(isOpen(), true, "expand button opens the viewer")
+        t.expect(state()["kind"] as? String, "table", "shows the table")
+        t.expect(js("document.querySelectorAll('#ld-viewer td').length") as? Int, 10, "viewer holds a copy of the table")
+        t.expect(scale() < 1, true, "a table wider than the window is fitted (\(scale()))")
+        t.expect(js("document.querySelector('#ld-viewer .ld-table-expand') === null") as? Bool, true, "no expand button in the copy")
+
+        // Checkboxes in the copy edit the source, and the copy follows.
+        click("#ld-viewer input[type=checkbox]")
+        t.expect(waitUntil { h.text.contains("| Run | [x] | [x] |") }, true, "checks the box in the source")
+        t.expect(waitUntil { js("document.querySelector('#ld-viewer input[type=checkbox]').checked") as? Bool == true }, true,
+                 "copy shows it checked")
+        t.expect(isOpen(), true, "viewer stays open")
+        t.expect(state()["kind"] as? String, "table", "still the table")
+        _ = js("ldViewerClose(); 0")
+    }
+
     t.group("zoom viewer: context menu") {
         @MainActor func menu(rightClicking selector: String) -> NSMenu {
+            // The page's message to the app arrives before the reply to this script.
             _ = js("document.querySelector('\(selector)').dispatchEvent(new MouseEvent('contextmenu', {bubbles: true, cancelable: true})); 0")
-            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.1))
             let menu = NSMenu()
             menu.addItem(withTitle: "Reload", action: nil, keyEquivalent: "")
             let event = NSEvent.mouseEvent(with: .rightMouseDown, location: .zero, modifierFlags: [], timestamp: 0,
@@ -135,6 +162,8 @@ func viewerChecks(_ t: Checker) {
 
         t.expect(menu(rightClicking: "#content p > img").items.contains { $0.title == "Open in Viewer" }, true,
                  "image menu has Open in Viewer")
+        t.expect(menu(rightClicking: "#content td").items.contains { $0.title == "Open in Viewer" }, true,
+                 "table menu has Open in Viewer")
         t.expect(menu(rightClicking: "#content h1").items.contains { $0.title == "Open in Viewer" }, false,
                  "text menu doesn't")
     }

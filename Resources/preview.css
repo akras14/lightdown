@@ -73,6 +73,16 @@ mark { background: var(--mark); color: inherit; }
 #content .mermaid svg, #content img { cursor: zoom-in; }
 #content a img { cursor: pointer; }
 html.ld-viewer-open { overflow: hidden; }
+/* Tables: an expand button in the corner, shown on hover, opens them in the viewer. */
+.ld-table { position: relative; width: max-content; max-width: 100%; margin: 0 0 1em; }
+.ld-table > table { margin: 0; }
+.ld-table-expand {
+  position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--muted);
+  font-size: 14px; line-height: 1; cursor: zoom-in; opacity: 0; transition: opacity .15s;
+}
+.ld-table:hover .ld-table-expand, .ld-table-expand:focus-visible { opacity: 1; }
+@media print { .ld-table-expand { display: none; } }
 #ld-viewer {
   position: fixed; inset: 0; z-index: 10; overflow: hidden;
   background: var(--bg); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;

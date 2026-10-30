@@ -1,6 +1,7 @@
-// Zoom viewer: click a diagram or image in the preview (or right-click > Open in Viewer) to see
-// it over the page, with zoom, pan, fit-to-window and actual size. Uses ldPost from preview.html.
-const ldViewer = { el: null, kind: null, w: 0, h: 0, scale: 1, x: 0, y: 0, drag: null, dragged: false, contextTarget: null };
+// Zoom viewer: click a diagram, image or a table's expand button in the preview (or right-click >
+// Open in Viewer) to see it over the page, with zoom, pan, fit-to-window and actual size. Uses
+// ldPost from preview.html.
+const ldViewer = { el: null, kind: null, source: null, w: 0, h: 0, scale: 1, x: 0, y: 0, drag: null, dragged: false, contextTarget: null };
 const LD_VIEWER_STEP = 1.25, LD_VIEWER_PAD = 32, LD_VIEWER_MIN = 0.05, LD_VIEWER_MAX = 40;
 
 // The diagram or image `node` belongs to, if any. Images inside links follow the link on click.
@@ -9,7 +10,34 @@ function ldViewerTarget(node, forClick) {
   const diagram = node.closest('#content .mermaid');
   if (diagram) return diagram.querySelector('svg') ? diagram : null;
   const img = node.closest('#content img');
-  return img && !(forClick && img.closest('a')) ? img : null;
+  if (img) return !(forClick && img.closest('a')) ? img : null;
+  // Tables hold links, checkboxes and text to select, so a click opens them only from their button.
+  const expand = node.closest('#content .ld-table-expand');
+  if (expand) return expand.parentElement.querySelector('table');
+  return forClick ? null : node.closest('#content table');
+}
+
+// Puts each table in a wrapper with an expand button, shown on hover. Called by ldRender.
+function ldViewerAddTableButtons(container) {
+  container.querySelectorAll('table').forEach(table => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ld-table';
+    const button = document.createElement('button');
+    button.className = 'ld-table-expand';
+    button.title = 'Open in Viewer';
+    button.textContent = '⤢';
+    table.replaceWith(wrapper);
+    wrapper.append(button, table);
+  });
+}
+
+// After a re-render (e.g. a checkbox in the copy was clicked), show the table's new contents.
+function ldViewerRefresh() {
+  if (!ldViewerIsOpen() || ldViewer.kind !== 'table') return;
+  const start = ldViewer.source && ldViewer.source.split('-')[0];
+  const table = start && document.querySelector(`#content table[data-sourcepos^="${start}-"]`);
+  if (!table) return ldViewerClose();
+  ldViewer.el.querySelector('.ld-viewer-item').replaceChildren(table.cloneNode(true));
 }
 
 function ldViewerElement() {
@@ -48,7 +76,8 @@ function ldViewerElement() {
   });
   v.addEventListener('pointerdown', e => {
     ldViewer.dragged = false;
-    if (e.button !== 0 || e.target.closest('.ld-viewer-toolbar')) return;
+    // Pointer capture would turn a click on a checkbox or link in a table into a click on the viewer.
+    if (e.button !== 0 || e.target.closest('.ld-viewer-toolbar, input, a')) return;
     ldViewer.drag = { px: e.clientX, py: e.clientY, x: ldViewer.x, y: ldViewer.y };
     try { v.setPointerCapture(e.pointerId); } catch (_) {}
     v.classList.add('ld-dragging');
@@ -89,6 +118,12 @@ function ldViewerOpen(target) {
     content = new Image();
     content.src = target.currentSrc || target.src;
     content.alt = target.alt;
+  } else if (target.tagName === 'TABLE') {
+    ldViewer.kind = 'table';
+    ldViewer.source = target.dataset.sourcepos;
+    ldViewer.w = target.scrollWidth || rect.width || 300;
+    ldViewer.h = target.scrollHeight || rect.height || 300;
+    content = target.cloneNode(true);
   } else {
     ldViewer.kind = 'diagram';
     content = target.querySelector('svg').cloneNode(true);
@@ -104,8 +139,8 @@ function ldViewerOpen(target) {
   item.style.height = ldViewer.h + 'px';
   v.hidden = false;
   document.documentElement.classList.add('ld-viewer-open');
-  // Diagrams fill the window; images aren't blown up past their actual size.
-  ldViewerFit(ldViewer.kind === 'image' ? 1 : Infinity);
+  // Diagrams fill the window; images and tables aren't blown up past their actual size.
+  ldViewerFit(ldViewer.kind === 'diagram' ? Infinity : 1);
   ldPost({ type: 'viewer', open: true });
 }
 
