@@ -36,6 +36,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         Theme.appearance = Theme.Appearance(rawValue: sender.tag) ?? .system
     }
 
+    /// ⌘1–⌘9: the menu item's tag is the tab number.
+    @MainActor @objc func showTabNumber(_ sender: NSMenuItem) {
+        guard let window = NSApp.keyWindow ?? NSApp.mainWindow else { return }
+        TabShortcuts.select(sender.tag, from: window)
+    }
+
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         if menuItem.action == #selector(chooseAppearance(_:)) {
             menuItem.state = menuItem.tag == Theme.appearance.rawValue ? .on : .off
@@ -211,6 +217,14 @@ enum MainMenu {
         menu.addItem(item("Zoom", #selector(NSWindow.performZoom(_:))))
         menu.addItem(.separator())
         menu.addItem(item("Bring All to Front", #selector(NSApplication.arrangeInFront(_:))))
+        // ⌘1–⌘9 jump to a tab; hidden like Safari's, each tab shows its shortcut instead.
+        for number in 1...TabShortcuts.limit {
+            let tab = item("Show Tab \(number)", #selector(AppDelegate.showTabNumber(_:)), "\(number)")
+            tab.tag = number
+            tab.isHidden = true
+            tab.allowsKeyEquivalentWhenHidden = true
+            menu.addItem(tab)
+        }
         return menu
     }
 }

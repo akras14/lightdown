@@ -51,7 +51,10 @@ final class MarkdownDocument: NSDocument {
         // Switching apps, usually to run git or Claude Code on this file, saves right away.
         NotificationCenter.default.addObserver(self, selector: #selector(saveNow),
                                                name: NSApplication.didResignActiveNotification, object: nil)
-        DispatchQueue.main.async { Session.saveOpenDocuments() }   // after the controller registers it
+        DispatchQueue.main.async {   // after the controller registers it
+            Session.saveOpenDocuments()
+            TabShortcuts.refresh()
+        }
     }
 
     /// A blank Untitled document nobody has typed into: safe to close without asking.
