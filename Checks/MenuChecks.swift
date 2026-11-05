@@ -47,9 +47,21 @@ func menuChecks(_ t: Checker) {
             }
         }
         collect(MainMenu.build())
-        let outline = MainMenu.build().items.lazy.compactMap { $0.submenu?.item(withTitle: "Show Outline") }.first
-        t.expect(outline?.keyEquivalent, "o", "outline toggles with ⌥⌘O")
-        t.expect(outline?.keyEquivalentModifierMask, [.command, .option])
+
+        // The panes toggle with ⌘ alone, on neighbouring keys: one hand.
+        let view = MainMenu.build().items.lazy.compactMap { $0.submenu }.first { $0.title == "View" }
+        for (action, key) in [(#selector(EditorSplitViewController.toggleEditor(_:)), "e"),
+                              (#selector(EditorSplitViewController.togglePreview(_:)), "r"),
+                              (#selector(EditorSplitViewController.toggleOutline(_:)), "t")] {
+            let item = view?.items.first { $0.action == action }
+            t.expect(item?.keyEquivalent, key, "\(NSStringFromSelector(action)) shortcut")
+            t.expect(item?.keyEquivalentModifierMask, [.command], "\(NSStringFromSelector(action)) uses ⌘ alone")
+        }
+
+        var titles: [String] = []
+        @MainActor func titlesIn(_ m: NSMenu) { for i in m.items { titles.append(i.title); if let s = i.submenu { titlesIn(s) } } }
+        titlesIn(MainMenu.build())
+        t.expect(titles.contains("Use Selection for Find"), false, "Use Selection for Find removed")
     }
 
     t.group("appearance through the menu") {
