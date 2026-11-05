@@ -18,7 +18,20 @@ git diff --quiet HEAD || COMMIT="$COMMIT-dirty"
     -c "Add :LightdownCommit string $COMMIT" "$APP/Contents/Info.plist"
 cp Resources/* "$APP/Contents/Resources/"
 cp LICENSE NOTICE "$APP/Contents/Resources/"
-codesign --force --sign - "$APP"
+# macOS ties privacy grants (such as Documents or Downloads folder access) to the
+# signature. An ad-hoc signature changes with every build, so each rebuild is a new app
+# to macOS. A self-signed code signing certificate named "ak-dev" keeps the signature
+# stable (README, Signing). Set LOCAL_SIGN_NAME to use a certificate with another name.
+LOCAL_SIGN_NAME=${LOCAL_SIGN_NAME:-ak-dev}
+LOCAL_ID=$(security find-identity -p codesigning 2>/dev/null \
+    | awk -v name="\"$LOCAL_SIGN_NAME\"" 'index($0, name) { print $2; exit }' || true)
+if [ -n "$LOCAL_ID" ]; then
+    codesign --force --sign "$LOCAL_ID" "$APP"
+    echo "Signed with \"$LOCAL_SIGN_NAME\""
+else
+    codesign --force --sign - "$APP"
+    echo "Ad-hoc signed: no \"$LOCAL_SIGN_NAME\" certificate, so folder access prompts return after every rebuild"
+fi
 echo "Built $APP"
 
 if [ "$1" = "--install" ]; then

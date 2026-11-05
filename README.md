@@ -82,6 +82,21 @@ swift run LightdownChecks --snapshot notes.md preview.png        # add "dark" fo
 
 To make Lightdown the default for `.md` files, open **Get Info** on any `.md` file in Finder, choose Lightdown under **Open with**, then click **Change All…**.
 
+### Signing
+
+Without a certificate, `build.sh` signs ad-hoc. That signature changes with every build, so
+macOS treats each rebuild as a new app and asks again for access to folders such as Documents
+or Downloads. A self-signed certificate keeps the signature the same from build to build.
+Create one once:
+
+1. Open Keychain Access, then **Keychain Access > Certificate Assistant > Create a Certificate...**
+2. Name it **ak-dev**, set Identity Type to **Self Signed Root** and Certificate Type to
+   **Code Signing**, and click Create.
+
+`build.sh` finds it by name and prints `Signed with "ak-dev"`. The first time, macOS may ask
+whether codesign can use the key: choose Always Allow. To use a certificate you already have,
+pass its name: `LOCAL_SIGN_NAME="My Cert" ./build.sh`.
+
 ## Project layout
 
 | Path | What it does |
