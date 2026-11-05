@@ -65,6 +65,18 @@ th { font-weight: 600; } tr:nth-child(2n) { background: var(--code-bg); }
 img { max-width: 100%; }
 hr { height: .25em; margin: 24px 0; padding: 0; border: 0; background: var(--border); }
 mark { background: var(--mark); color: inherit; }
+/* YAML front matter (FrontMatter.swift): a quiet key/value panel above the document. */
+.frontmatter {
+  display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px;
+  margin: 0 0 1.5em; padding: 10px 14px; font-size: .875em; line-height: 1.5;
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+}
+.frontmatter dt { color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92em; padding-top: .08em; }
+.frontmatter dd { margin: 0; }
+.frontmatter dd.literal { white-space: pre-wrap; }
+.frontmatter ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px; }
+.frontmatter li { padding: 0 .5em; border: 1px solid var(--border); border-radius: 1em; background: var(--bg); font-size: .92em; }
+.frontmatter pre { margin: 0; padding: 0; background: none; font-size: .92em; }
 .footnotes { font-size: .875em; color: var(--muted); border-top: 1px solid var(--border); padding-top: 1em; }
 .mermaid { margin: 0 0 1em; text-align: center; }
 .mermaid svg { max-width: 100%; height: auto; }

@@ -6,7 +6,8 @@ struct Heading: Equatable {
     var line: Int   // 1-based
 }
 
-/// Finds ATX (`## Title`) and setext (`Title` over `===`/`---`) headings, skipping fenced code.
+/// Finds ATX (`## Title`) and setext (`Title` over `===`/`---`) headings, skipping fenced code
+/// and front matter.
 enum OutlineParser {
     private static let atx = try! NSRegularExpression(pattern: #"^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$"#)
     private static let fence = try! NSRegularExpression(pattern: #"^ {0,3}(`{3,}|~{3,})"#)
@@ -19,7 +20,9 @@ enum OutlineParser {
         var openFence: String?
         var previousWasParagraph = false
 
-        for (i, line) in lines.enumerated() {
+        let skip = FrontMatter.parse(text)?.lineCount ?? 0
+
+        for (i, line) in lines.enumerated() where i >= skip {
             let ns = line as NSString
             let full = NSRange(location: 0, length: ns.length)
 

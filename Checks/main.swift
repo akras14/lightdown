@@ -16,6 +16,7 @@ MainActor.assumeIsolated {
     formattingChecks(t)
     listChecks(t)
     previewChecks(t)
+    frontMatterChecks(t)
     imageChecks(t)
     exportChecks(t)
     headingChecks(t)

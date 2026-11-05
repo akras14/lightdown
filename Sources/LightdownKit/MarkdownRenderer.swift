@@ -9,6 +9,12 @@ enum MarkdownRenderer {
     /// `sourcePositions` adds `data-sourcepos="line:col-line:col"` to block elements, which the
     /// preview uses to map between editor lines and rendered content.
     static func html(from markdown: String, sourcePositions: Bool = false) -> String {
+        guard let frontMatter = FrontMatter.parse(markdown) else { return body(from: markdown, sourcePositions: sourcePositions) }
+        return FrontMatter.html(frontMatter, sourcePositions: sourcePositions)
+            + body(from: FrontMatter.blanked(markdown, lineCount: frontMatter.lineCount), sourcePositions: sourcePositions)
+    }
+
+    private static func body(from markdown: String, sourcePositions: Bool) -> String {
         cmark_gfm_core_extensions_ensure_registered()
 
         var options = CMARK_OPT_UNSAFE | CMARK_OPT_FOOTNOTES | CMARK_OPT_SMART

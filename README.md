@@ -27,6 +27,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 ![Preview: a table, a Mermaid diagram, highlighted Swift, a heading link and a footnote](media/screenshots/preview.png)
 
 - **GitHub-style Markdown** via [cmark-gfm](https://github.com/swiftlang/swift-cmark): tables, task lists, strikethrough, footnotes, autolinks.
+- **Front matter.** A YAML block between `---` lines at the top of a file (Jekyll, Hugo, Claude skills) shows as a compact key/value panel instead of a rule and a heading.
 - **Heading links.** Headings get GitHub-style IDs, so `[see setup](#setup)` jumps to them.
 - **Mermaid diagrams** in fenced ` ```mermaid ` blocks, and syntax colouring for code.
 - **Zoom viewer.** Click a diagram or image, or the ⤢ button that appears when you hover a table (or right-click > Open in Viewer), to see it full-window. Checkboxes in a table still work there. Zoom with the toolbar, a pinch or ⌘-scroll, drag to pan, and press Esc to close.
@@ -88,6 +89,7 @@ To make Lightdown the default for `.md` files, open **Get Info** on any `.md` fi
 | `Sources/LightdownKit/EditorSplitViewController.swift` | Editor and preview panes, scroll sync, zoom, pane toggles |
 | `Sources/LightdownKit/MarkdownDocument.swift` | Opening, saving, HTML export, printing |
 | `Sources/LightdownKit/MarkdownRenderer.swift` | Markdown to HTML via cmark-gfm |
+| `Sources/LightdownKit/FrontMatter.swift` | YAML front matter: parsing and the key/value panel |
 | `Sources/LightdownKit/SyntaxHighlighter.swift` | Markdown colouring in the editor |
 | `Sources/LightdownKit/Zoom.swift` | Zoom steps and the saved zoom level |
 | `Sources/LightdownKit/App.swift` | App startup and menus |
