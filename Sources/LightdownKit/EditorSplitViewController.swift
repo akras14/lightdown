@@ -128,6 +128,8 @@ final class PreviewWebView: WKWebView {
     /// something it can show. Both reported by the page.
     var viewerOpen = false
     var viewerTargetAvailable = false
+    /// Where the viewer's Copy button puts the image (a private one in the checks).
+    var copyPasteboard = NSPasteboard.general
 
     /// Pinching zooms the viewer while it's open, and the whole preview otherwise.
     override func magnify(with event: NSEvent) {
@@ -153,6 +155,40 @@ final class PreviewWebView: WKWebView {
 
     @objc func openInViewer(_ sender: Any?) {
         evaluateJavaScript("ldViewerOpenContextTarget()")
+    }
+
+    /// Copies what the viewer shows as an image at its actual size, whatever the zoom. The page
+    /// fits the item into the window (ldViewerBeginCapture) and the snapshot re-draws that area at
+    /// the item's own width, so diagrams and text stay sharp.
+    func copyViewerImage() {
+        evaluateJavaScript("ldViewerBeginCapture()") { [weak self] value, _ in
+            guard let self else { return }
+            guard let area = value as? [String: Any],
+                  let x = area["x"] as? Double, let y = area["y"] as? Double,
+                  let width = area["width"] as? Double, let height = area["height"] as? Double,
+                  let naturalWidth = area["naturalWidth"] as? Double else {
+                self.evaluateJavaScript("ldViewerEndCapture(false)")
+                return
+            }
+            let zoom = self.pageZoom
+            let config = WKSnapshotConfiguration()
+            config.rect = CGRect(x: x * zoom, y: y * zoom, width: width * zoom, height: height * zoom)
+            config.snapshotWidth = NSNumber(value: naturalWidth)
+            self.takeSnapshot(with: config) { [weak self] image, _ in
+                guard let self else { return }
+                let copied = image.map { self.write($0) } ?? false
+                self.evaluateJavaScript("ldViewerEndCapture(\(copied))")
+            }
+        }
+    }
+
+    /// PNG for most apps, TIFF for the ones that prefer it.
+    private func write(_ image: NSImage) -> Bool {
+        guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff) else { return false }
+        rep.size = image.size   // so the PNG records the Retina resolution and pastes at its size in points
+        guard let png = rep.representation(using: .png, properties: [:]) else { return false }
+        copyPasteboard.declareTypes([.png, .tiff], owner: nil)
+        return copyPasteboard.setData(png, forType: .png) && copyPasteboard.setData(tiff, forType: .tiff)
     }
 }
 
@@ -523,6 +559,8 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
             }
         case "viewer":
             webView.viewerOpen = body["open"] as? Bool ?? false
+        case "viewerCopy":
+            webView.copyViewerImage()
         case "viewerTarget":
             webView.viewerTargetAvailable = body["available"] as? Bool ?? false
         default:

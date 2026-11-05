@@ -152,6 +152,61 @@ func viewerChecks(_ t: Checker) {
         _ = js("ldViewerClose(); 0")
     }
 
+    t.group("zoom viewer: copy as image") {
+        let pasteboard = NSPasteboard(name: .init("lightdown-checks-\(UUID().uuidString)"))
+        defer { pasteboard.releaseGlobally() }
+        web.copyPasteboard = pasteboard
+        defer { web.copyPasteboard = .general }
+
+        // Copies what the viewer shows, returning the image read back from the pasteboard.
+        @MainActor func copy(opening selector: String) -> NSBitmapImageRep? {
+            pasteboard.clearContents()
+            click(selector)
+            t.expect(isOpen(), true, "opened \(selector)")
+            click("#ld-viewer [data-action=zoom-in]")   // copying doesn't depend on the zoom
+            let button = "document.querySelector('#ld-viewer [data-action=copy]')"
+            t.expect(js("\(button).textContent.trim() === '' && !!\(button).querySelector('svg')") as? Bool, true, "an icon, not text")
+            t.expect(js("\(button).title") as? String, "Copy as Image", "named on hover")
+            let before = state()
+            click("#ld-viewer [data-action=copy]")
+            t.expect(waitUntil { pasteboard.data(forType: .png) != nil }, true, "PNG on the pasteboard")
+            t.expect(pasteboard.data(forType: .tiff) != nil, true, "TIFF too")
+            t.expect(waitUntil { js("document.querySelector('#ld-viewer [data-action=copy]').dataset.state") as? String == "copied" },
+                     true, "button confirms")
+            let after = state()
+            for key in ["scale", "x", "y"] {
+                t.expect(after[key] as? Double, before[key] as? Double, "view put back: \(key)")
+            }
+            t.expect(js("getComputedStyle(document.querySelector('.ld-viewer-toolbar')).visibility") as? String, "visible",
+                     "toolbar shown again")
+            return pasteboard.data(forType: .png).flatMap { NSBitmapImageRep(data: $0) }
+        }
+        // Background in the corner, and something drawn in the middle.
+        @MainActor func hasContent(_ rep: NSBitmapImageRep) -> Bool {
+            let corner = rep.colorAt(x: 1, y: 1)
+            var differing = 0
+            for x in stride(from: rep.pixelsWide / 4, to: rep.pixelsWide * 3 / 4, by: 2) {
+                if let c = rep.colorAt(x: x, y: rep.pixelsHigh / 2), c != corner { differing += 1 }
+            }
+            return corner != nil && differing > 0
+        }
+
+        let natural = (js("document.querySelector('#content .mermaid svg').viewBox.baseVal.width") as? Double) ?? 0
+        if let rep = copy(opening: "#content .mermaid svg") {
+            t.expect(abs(rep.size.width - (natural + 32)) < 1, true, "diagram at natural size plus a margin (\(rep.size.width) vs \(natural))")
+            t.expect(rep.pixelsWide >= Int(rep.size.width), true, "at least one pixel per point")
+            t.expect(hasContent(rep), true, "diagram drawn")
+        }
+        _ = js("ldViewerClose(); 0")
+
+        if let rep = copy(opening: "#content .ld-table-expand") {
+            let width = (js("document.querySelector('#ld-viewer table').offsetWidth") as? Double) ?? 0
+            t.expect(abs(rep.size.width - (width + 32)) < 1, true, "table at natural width, not fitted (\(rep.size.width) vs \(width))")
+            t.expect(hasContent(rep), true, "table drawn")
+        }
+        _ = js("ldViewerClose(); 0")
+    }
+
     t.group("zoom viewer: context menu") {
         @MainActor func menu(rightClicking selector: String) -> NSMenu {
             // The page's message to the app arrives before the reply to this script.

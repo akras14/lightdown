@@ -30,7 +30,7 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 - **Front matter.** A YAML block between `---` lines at the top of a file (Jekyll, Hugo, Claude skills) shows as a compact key/value panel instead of a rule and a heading.
 - **Heading links.** Headings get GitHub-style IDs, so `[see setup](#setup)` jumps to them.
 - **Mermaid diagrams** in fenced ` ```mermaid ` blocks, and syntax colouring for code.
-- **Zoom viewer.** Click a diagram or image, or the ⤢ button that appears when you hover a table (or right-click > Open in Viewer), to see it full-window. Checkboxes in a table still work there. Zoom with the toolbar, a pinch or ⌘-scroll, drag to pan, and press Esc to close.
+- **Zoom viewer.** Click a diagram or image, or the ⤢ button that appears when you hover a table (or right-click > Open in Viewer), to see it full-window. Checkboxes in a table still work there. Zoom with the toolbar, a pinch or ⌘-scroll, drag to pan, and press Esc to close. **Copy** puts it on the clipboard as a PNG at its actual size, whatever the zoom, ready to paste into Slack, slides or a doc.
 - **Two-way scroll sync by source line.** Scrolling either pane keeps the same content at the top of the other, even past images and long code blocks.
 
 **Window**

@@ -117,4 +117,8 @@ html.ld-viewer-open { overflow: hidden; }
   background: none; color: var(--fg); font: inherit; cursor: pointer;
 }
 .ld-viewer-toolbar button:hover { background: var(--code-bg); }
+#ld-viewer.ld-capturing .ld-viewer-toolbar { visibility: hidden; }
+.ld-viewer-toolbar button svg { display: block; margin: auto; }
+.ld-viewer-toolbar button[data-state=copied] { color: #1a7f37; }
+.ld-viewer-toolbar button[data-state=failed] { color: #d1242f; }
 .ld-viewer-zoom { min-width: 44px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }

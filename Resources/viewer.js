@@ -1,8 +1,17 @@
 // Zoom viewer: click a diagram, image or a table's expand button in the preview (or right-click >
 // Open in Viewer) to see it over the page, with zoom, pan, fit-to-window and actual size. Uses
 // ldPost from preview.html.
-const ldViewer = { el: null, kind: null, source: null, w: 0, h: 0, scale: 1, x: 0, y: 0, drag: null, dragged: false, contextTarget: null };
-const LD_VIEWER_STEP = 1.25, LD_VIEWER_PAD = 32, LD_VIEWER_MIN = 0.05, LD_VIEWER_MAX = 40;
+const ldViewer = { el: null, kind: null, source: null, w: 0, h: 0, scale: 1, x: 0, y: 0, drag: null, dragged: false, contextTarget: null, saved: null };
+const LD_VIEWER_STEP = 1.25, LD_VIEWER_PAD = 32, LD_VIEWER_MIN = 0.05, LD_VIEWER_MAX = 40, LD_VIEWER_CAPTURE_MARGIN = 16;
+let ldViewerCopyTimer = 0;
+// Copy button icons: two overlapping sheets, then a checkmark (or a cross) for a moment after copying.
+const ldViewerIcon = d => `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const LD_VIEWER_ICONS = {
+  copy: ldViewerIcon('<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/>'),
+  copied: ldViewerIcon('<path d="M3.5 8.5l3 3 6-7"/>'),
+  failed: ldViewerIcon('<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>'),
+};
 
 // The diagram or image `node` belongs to, if any. Images inside links follow the link on click.
 function ldViewerTarget(node, forClick) {
@@ -61,6 +70,7 @@ function ldViewerElement() {
       <button data-action="zoom-in" title="Zoom In (+)">+</button>
       <button data-action="fit" title="Fit to Window (0)">Fit</button>
       <button data-action="reset" title="Actual Size (1)">1:1</button>
+      <button data-action="copy" title="Copy as Image" aria-label="Copy as Image">${LD_VIEWER_ICONS.copy}</button>
       <button data-action="close" title="Close (Esc)">✕</button>
     </div>`;
   document.body.appendChild(v);
@@ -73,6 +83,7 @@ function ldViewerElement() {
         'zoom-out': () => ldViewerZoom(1 / LD_VIEWER_STEP),
         'fit': () => ldViewerFit(),
         'reset': () => ldViewerReset(),
+        'copy': () => ldPost({ type: 'viewerCopy' }),
         'close': () => ldViewerClose(),
       })[button.dataset.action]();
     } else if (!ldViewer.dragged && !e.target.closest('.ld-viewer-item, .ld-viewer-toolbar')) {
@@ -195,6 +206,33 @@ function ldViewerFit(max = Infinity) {
 }
 
 function ldViewerReset() { ldViewerCenter(1); }
+
+// Copy as Image. The app takes the snapshot (PreviewWebView.copyViewerImage), since a canvas can't
+// draw a diagram's HTML labels or a table; the page only frames the item for it. This fits the
+// item and a margin into the window with the toolbar hidden, then returns the area to capture and
+// its width at actual size, in CSS pixels. ldViewerEndCapture puts the view back. (The snapshot
+// waits for the page to draw the new layout.)
+function ldViewerBeginCapture() {
+  const m = LD_VIEWER_CAPTURE_MARGIN, w = ldViewer.w + 2 * m, h = ldViewer.h + 2 * m;
+  ldViewer.saved = { scale: ldViewer.scale, x: ldViewer.x, y: ldViewer.y };
+  ldViewer.el.classList.add('ld-capturing');
+  const s = Math.min((innerWidth - 2 * LD_VIEWER_PAD) / w, (innerHeight - 2 * LD_VIEWER_PAD) / h);
+  ldViewerCenter(s);
+  return { x: ldViewer.x - m * s, y: ldViewer.y - m * s, width: w * s, height: h * s, naturalWidth: w };
+}
+
+function ldViewerEndCapture(copied) {
+  const v = ldViewer.el, saved = ldViewer.saved;
+  ldViewer.saved = null;
+  v.classList.remove('ld-capturing');
+  if (saved) { Object.assign(ldViewer, saved); ldViewerApply(); }
+  const button = v.querySelector('[data-action=copy]');
+  const state = copied ? 'copied' : 'failed';
+  button.dataset.state = state;
+  button.innerHTML = LD_VIEWER_ICONS[state];
+  clearTimeout(ldViewerCopyTimer);
+  ldViewerCopyTimer = setTimeout(() => { delete button.dataset.state; button.innerHTML = LD_VIEWER_ICONS.copy; }, 1500);
+}
 
 // Zooms by `factor`, keeping the point (cx, cy) in place; the window's center by default.
 function ldViewerZoom(factor, cx = innerWidth / 2, cy = innerHeight / 2) {
