@@ -265,6 +265,14 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 - [ ] Reopening never adds an extra Untitled next to the documents that come back
 - [ ] An empty Untitled document closes itself when you switch to another tab or open a file; one you've typed in stays
 
+## 17. Collapsing sections
+
+- [ ] Hover a heading in the preview: a ⌄ appears to its left; clicking it hides the section, sub-sections too, and leaves a ›
+- [ ] Clicking › shows the section again
+- [ ] Collapse this section, then type in the editor somewhere else: it stays collapsed
+- [ ] View → Collapse All Sections (⌥⇧⌘←) leaves only the top heading; View → Expand All Sections (⌥⇧⌘→) shows everything
+- [ ] Collapse section 16, then find "blank document" in the editor (⌘F, Return): once the match in section 16 is selected, the section opens in the preview
+
 ## Results
 
 Anything that didn't work, or felt off:

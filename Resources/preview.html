@@ -9,6 +9,7 @@
 <script src="mermaid.min.js"></script>
 <script src="headings.js"></script>
 <script src="viewer.js"></script>
+<script src="sections.js"></script>
 <script>
   function ldSetBase(href) {
     let b = document.querySelector('base');
@@ -28,6 +29,7 @@
     c.querySelectorAll('pre code:not(.language-mermaid)').forEach(el => hljs.highlightElement(el));
     c.querySelectorAll('li input[type=checkbox], input[data-line]').forEach(el => { el.disabled = false; });
     ldViewerAddTableButtons(c);
+    ldSectionsAddToggles(c);
     ldViewerRefresh();
     ldRenderMermaid(c, gen);
   }
@@ -149,6 +151,7 @@
           const err = document.createElement('div');
           err.className = 'mermaid-error';
           err.textContent = 'Mermaid: ' + (e && e.message ? e.message : e);
+          if (code.parentElement.classList.contains('ld-folded')) err.classList.add('ld-folded');
           code.parentElement.after(err);
           continue;
         }
@@ -156,6 +159,7 @@
       if (gen !== ldGeneration) return; // a newer render replaced the DOM
       div.innerHTML = svg;
       if (code.parentElement.dataset.sourcepos) div.dataset.sourcepos = code.parentElement.dataset.sourcepos;
+      if (code.parentElement.classList.contains('ld-folded')) div.classList.add('ld-folded'); // in a collapsed section
       code.parentElement.replaceWith(div);
     }
     ldAnchors = null; // diagrams change the page height

@@ -392,6 +392,7 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
 
     func textViewDidChangeSelection(_ notification: Notification) {
         updateWordCount()
+        revealSelectionInPreview()
     }
 
     private func updateWordCount() {
@@ -510,6 +511,24 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         if editorItem.isCollapsed == false { view.window?.makeFirstResponder(textView) }
     }
 
+    // MARK: Collapsible sections (sections.js)
+
+    /// How many headings the preview has collapsed, as it last reported.
+    private var collapsedSections = 0
+
+    @IBAction func collapseAllSections(_ sender: Any?) { webView.evaluateJavaScript("ldCollapseAll()") }
+    @IBAction func expandAllSections(_ sender: Any?) { webView.evaluateJavaScript("ldExpandAll()") }
+
+    /// Opens collapsed sections that hide a selection made in the editor, such as a match find
+    /// selected. Only selections, not the caret, so typing in a collapsed section leaves it collapsed.
+    private func revealSelectionInPreview() {
+        let selection = textView.selectedRange()
+        guard collapsedSections > 0, previewReady, selection.length > 0 else { return }
+        let line = textView.lineIndex.line(containing: selection.location) + 1
+        webView.evaluateJavaScript("ldRevealLine(\(line))")
+    }
+
+
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         switch menuItem.action {
         case #selector(togglePreview(_:)):
@@ -521,6 +540,10 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
         case #selector(toggleOutline(_:)):
             menuItem.title = outlineItem.isCollapsed ? "Show Outline" : "Hide Outline"
             return true
+        case #selector(collapseAllSections(_:)):
+            return !previewItem.isCollapsed
+        case #selector(expandAllSections(_:)):
+            return !previewItem.isCollapsed && collapsedSections > 0
         case #selector(resetZoom(_:)):
             return abs(Zoom.level - 1) > 0.001
         default:
@@ -557,6 +580,8 @@ final class EditorSplitViewController: NSSplitViewController, NSTextViewDelegate
             if let line = body["line"] as? Int, let column = body["column"] as? Int {
                 textView.toggleCheckbox(line: line - 1, column: column)
             }
+        case "sections":
+            collapsedSections = body["collapsed"] as? Int ?? 0
         case "viewer":
             webView.viewerOpen = body["open"] as? Bool ?? false
         case "viewerCopy":

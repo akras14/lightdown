@@ -122,3 +122,22 @@ html.ld-viewer-open { overflow: hidden; }
 .ld-viewer-toolbar button[data-state=copied] { color: #1a7f37; }
 .ld-viewer-toolbar button[data-state=failed] { color: #d1242f; }
 .ld-viewer-zoom { min-width: 44px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* Collapsible sections (sections.js): a chevron left of each heading, shown on hover and while
+   the section is collapsed. */
+#content > :is(h1, h2, h3, h4, h5, h6) { position: relative; }
+.ld-fold {
+  position: absolute; left: -24px; top: 0; width: 20px; height: 1.25em; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 4px; background: none; color: var(--muted); font-size: inherit;
+  cursor: pointer; opacity: 0; transition: opacity .15s;
+}
+.ld-fold::before {
+  content: ''; width: 6px; height: 6px; margin-top: -3px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg); transition: transform .15s;
+}
+.ld-collapsed > .ld-fold::before { transform: rotate(-45deg); margin: 0 0 0 -3px; }
+.ld-fold:hover { background: var(--code-bg); color: var(--fg); }
+:is(h1, h2, h3, h4, h5, h6):hover > .ld-fold, .ld-collapsed > .ld-fold { opacity: 1; }
+.ld-folded { display: none !important; }
+@media print { .ld-fold { display: none; } }

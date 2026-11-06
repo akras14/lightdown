@@ -203,6 +203,10 @@ enum MainMenu {
         menu.addItem(item("Hide Editor", #selector(EditorSplitViewController.toggleEditor(_:)), "e"))
         menu.addItem(item("Split Evenly", #selector(EditorSplitViewController.splitEvenly(_:)), "0", [.command, .option]))
         menu.addItem(.separator())
+        let left = arrow(NSLeftArrowFunctionKey), right = arrow(NSRightArrowFunctionKey)
+        menu.addItem(item("Collapse All Sections", #selector(EditorSplitViewController.collapseAllSections(_:)), left, [.command, .option, .shift]))
+        menu.addItem(item("Expand All Sections", #selector(EditorSplitViewController.expandAllSections(_:)), right, [.command, .option, .shift]))
+        menu.addItem(.separator())
         let appearance = NSMenu(title: "Appearance")
         for option in Theme.Appearance.allCases {
             let i = item(option.title, #selector(AppDelegate.chooseAppearance(_:)))

@@ -20,6 +20,7 @@ MainActor.assumeIsolated {
     imageChecks(t)
     exportChecks(t)
     headingChecks(t)
+    sectionChecks(t)
     scrollSyncChecks(t)
     outlineChecks(t)
     wordCountChecks(t)
