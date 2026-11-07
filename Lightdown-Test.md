@@ -2,7 +2,7 @@
 
 Every feature, with a checkbox to tick as you go. **Click a checkbox in the preview** to tick it. That's one of the tests too.
 
-Open the outline with **⌥⌘O** to jump between sections.
+Open the outline with **⌘T** to jump between sections.
 
 Testing edits this file and adds images next to it. Afterwards, `git checkout Lightdown-Test.md` resets the file; pasted images are git-ignored.
 
@@ -23,11 +23,11 @@ Testing edits this file and adds images next to it. Afterwards, `git checkout Li
 
 ## 3. Outline sidebar
 
-- [ ] ⌥⌘O shows the outline; it lists every heading, indented by level
+- [ ] ⌘T shows the outline; it lists every heading, indented by level
 - [ ] Clicking a heading jumps there, and the preview follows
 - [ ] Scrolling highlights the current section in the outline
 - [ ] Add a heading below (type `## New section` at the end of this list) and watch it appear
-- [ ] ⌥⌘O hides it again; reopen the app and it remembers
+- [ ] ⌘T hides it again; reopen the app and it remembers
 
 ## 4. Formatting shortcuts
 
@@ -175,7 +175,7 @@ print(Greeting(name: "Lightdown").message())
 | Feature        | Shortcut | Works? |
 |----------------|:--------:|-------:|
 | Bold           |    ⌘B    |      ✓ |
-| Outline        |   ⌥⌘O    |      ✓ |
+| Outline        |    ⌘T    |      ✓ |
 | Export PDF     |    —     |      ✓ |
 
 > A blockquote, with ~~strikethrough~~, `inline code`, an autolink https://github.com and a [regular link](https://example.com).
@@ -247,10 +247,10 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 
 ## 15. Window and panes
 
-- [ ] ⌥⌘P hides and shows the preview
-- [ ] ⌥⌘E hides and shows the editor
+- [ ] ⌘R hides and shows the preview
+- [ ] ⌘E hides and shows the editor
 - [ ] Drag the divider off-center, then press ⌥⌘0 (or double-click the divider): editor and preview split 50/50
-- [ ] Open and close the outline (⌥⌘O) a few times: the editor and preview keep their widths
+- [ ] Open and close the outline (⌘T) a few times: the editor and preview keep their widths
 - [ ] ⌘F finds in the editor; ⌥⌘F finds and replaces
 - [ ] ⌘Z / ⇧⌘Z undo and redo every kind of edit above
 - [ ] Open three documents as tabs: they show ⌘1, ⌘2 and ⌘3 next to their names, and ⌘2 jumps to the second
