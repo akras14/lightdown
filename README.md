@@ -43,6 +43,8 @@ A minimal, native Markdown editor for macOS: an editor on the left and a live pr
 - **Appearance:** View → Appearance → System, Light or Dark. The editor and preview share one colour scheme.
 - **Hide either pane:** ⌘E hides the editor, ⌘R hides the preview. With ⌘T for the outline, the three pane shortcuts sit side by side under one hand. ⌥⌘0, or double-clicking the divider, splits them 50/50 again.
 
+- **Command palette** (⇧⌘P), as in VS Code and Sublime Text. Type part of any menu command, such as "coll all" for Collapse All Sections, and press Return. It lists everything in the menus that you can use right now, with its shortcut, and the commands you ran last come first.
+
 **Files**
 
 ![Files: three documents open as tabs in one window](media/screenshots/files.png)

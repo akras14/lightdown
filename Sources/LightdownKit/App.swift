@@ -136,7 +136,8 @@ enum MainMenu {
         menu.addItem(item("Export HTML…", #selector(MarkdownDocument.exportHTML(_:)), "e", [.command, .shift]))
         menu.addItem(item("Export PDF…", #selector(MarkdownDocument.exportPDF(_:))))
         menu.addItem(.separator())
-        menu.addItem(item("Page Setup…", #selector(NSDocument.runPageLayout(_:)), "p", [.command, .shift]))
+        // No ⇧⌘P: that opens the command palette, as in VS Code and Sublime Text.
+        menu.addItem(item("Page Setup…", #selector(NSDocument.runPageLayout(_:))))
         menu.addItem(item("Print…", #selector(NSDocument.printDocument(_:)), "p"))
         return menu
     }
@@ -189,6 +190,8 @@ enum MainMenu {
 
     private static func viewMenu() -> NSMenu {
         let menu = NSMenu(title: "View")
+        menu.addItem(item("Command Palette…", #selector(DocumentViewController.showCommandPalette(_:)), "p", [.command, .shift]))
+        menu.addItem(.separator())
         menu.addItem(item("Zoom In", #selector(EditorSplitViewController.zoomIn(_:)), "="))
         // Also accept ⌘+ (shift-=) for zoom in.
         let plus = item("Zoom In", #selector(EditorSplitViewController.zoomIn(_:)), "+")

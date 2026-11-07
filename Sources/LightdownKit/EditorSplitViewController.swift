@@ -77,6 +77,16 @@ final class EditorTextView: NSTextView {
 /// The window's content: the split view with the status bar below it.
 final class DocumentViewController: NSViewController {
     let editor: EditorSplitViewController
+    let palette = CommandPaletteController()
+
+    /// ⇧⌘P opens the command palette, and closes it again.
+    @IBAction func showCommandPalette(_ sender: Any?) {
+        if palette.isOpen {
+            palette.close()
+        } else {
+            palette.open(in: view, menu: NSApp.mainMenu, fallbackFocus: editor.textView)
+        }
+    }
 
     init(document: MarkdownDocument) {
         editor = EditorSplitViewController(document: document)

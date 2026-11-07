@@ -13,7 +13,8 @@ func menuChecks(_ t: Checker) {
         func collect(_ m: NSMenu) { for i in m.items { items.append(i); if let s = i.submenu { collect(s) } } }
         collect(menu)
 
-        let ours: [AnyClass] = [AppDelegate.self, MarkdownDocument.self, EditorSplitViewController.self, EditorTextView.self]
+        let ours: [AnyClass] = [AppDelegate.self, MarkdownDocument.self, EditorSplitViewController.self, EditorTextView.self,
+                                DocumentViewController.self]
         let builtIns: [AnyClass] = [NSView.self, NSTextView.self, NSTableView.self, WKWebView.self, NSWindow.self,
                                     NSWindowController.self, NSViewController.self, NSSplitViewController.self,
                                     NSApplication.self, NSDocument.self]

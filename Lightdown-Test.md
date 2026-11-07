@@ -273,6 +273,16 @@ echo "- [ ] Added from Terminal at $(date +%H:%M:%S)" >> Lightdown-Test.md
 - [ ] View → Collapse All Sections (⌥⇧⌘←) leaves only the top heading; View → Expand All Sections (⌥⇧⌘→) shows everything
 - [ ] Collapse section 16, then find "blank document" in the editor (⌘F, Return): once the match in section 16 is selected, the section opens in the preview
 
+## 18. Command palette
+
+- [ ] ⇧⌘P opens a search box at the top of the window listing every menu command, with its menu and shortcut
+- [ ] Type "coll all": Collapse All Sections is first; Return runs it and the editor has focus again
+- [ ] ↑ / ↓ move through the list, clicking a command runs it, and Esc, a click outside or ⇧⌘P again closes it without running anything
+- [ ] Put the cursor in "make bold" (section 4), then ⇧⌘P, "bold", Return: the word turns bold, as with ⌘B
+- [ ] "format link" finds Format → Link: the menu name counts too
+- [ ] Commands that can't run now are left out: with nothing collapsed there's no Expand All Sections
+- [ ] Open the palette again: the commands you ran last are at the top
+
 ## Results
 
 Anything that didn't work, or felt off:
